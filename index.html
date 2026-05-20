@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>הפרופיל ההורי שלי — ד"ר ערן כץ</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── TOKENS ─────────────────────────────── */
+    :root {
+      --bg:          #EFF2ED;
+      --bg-2:        #E8EDE4;
+      --bg-3:        #DDE5D8;
+      --surface:     #F7F9F5;
+      --surface-2:   #FFFFFF;
+      --sage:        #4A6B5E;
+      --sage-mid:    #5E7E72;
+      --sage-light:  #7A9B8E;
+      --sage-pale:   #C4D8D0;
+      --forest:      #2C3E30;
+      --forest-soft: #364A3A;
+      --gold:        #8A6F3A;
+      --gold-light:  #B8922A;
+      --ink:         #1E2820;
+      --ink-soft:    #3A4A3E;
+      --ink-mid:     #5A6B5E;
+      --ink-muted:   #8A9B8E;
+      --border:      rgba(74,107,94,0.18);
+      --border-mid:  rgba(74,107,94,0.28);
+
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'Assistant', system-ui, sans-serif;
+      --ease:         cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-back:    cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ── RESET ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--ink);
+      direction: rtl;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* subtle background texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(ellipse at 15% 15%, rgba(94,126,114,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 85%, rgba(44,62,48,0.05) 0%, transparent 55%),
+        linear-gradient(rgba(74,107,94,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,107,94,0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── LAYOUT ─────────────────────────────── */
+    #app {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 40px 96px;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 960px;
+      animation: fadeUp 0.45s var(--ease) forwards;
+    }
+    .screen.active { display: block; }
+
+    @media (max-width: 768px) {
+      #app { padding: 32px 20px 64px; }
+      .screen { max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      #app { padding: 24px 14px 48px; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── MASTHEAD ───────────────────────────── */
+    .masthead {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .masthead-byline {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage-mid);
+      margin-bottom: 10px;
+    }
+    .masthead-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 5.5vw, 4.4rem);
+      font-weight: 900;
+      color: var(--forest);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .masthead-title em {
+      font-style: italic;
+      color: var(--sage-mid);
+    }
+    .masthead-sub {
+      font-size: 0.92rem;
+      color: var(--ink-mid);
+      margin-top: 8px;
+      font-style: italic;
+    }
+    .masthead-rule {
+      width: 48px; height: 2px;
+      background: var(--sage-pale);
+      margin: 14px auto 0;
+      border-radius: 99px;
+    }
+
+    /* ── CARD ───────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 52px 64px;
+      box-shadow:
+        0 1px 3px rgba(44,62,48,0.04),
+        0 8px 32px rgba(44,62,48,0.07);
+    }
+    @media (max-width: 768px) { .card { padding: 36px 32px; } }
+    @media (max-width: 480px) { .card { padding: 24px 18px; } }
+
+    /* ── SECTION LABEL ──────────────────────── */
+    .s-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sage-mid);
+      margin-bottom: 10px;
+    }
+
+    .lead {
+      font-size: 1.1rem;
+      line-height: 1.78;
+      color: var(--ink-soft);
+      margin-bottom: 36px;
+    }
+
+    /* ── DIVIDER ────────────────────────────── */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 26px 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--bg-3);
+    }
+    .divider span {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      font-style: italic;
+    }
+
+    /* ── CHOICE GROUP ───────────────────────── */
+    .choice-group { margin-bottom: 28px; }
+    .choice-hint {
+      font-size: 0.84rem;
+      color: var(--ink-muted);
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+    .choice-grid {
+      display: grid; gap: 8px;
+    }
+    .choice-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 480px) {
+      .choice-grid.cols-3 { grid-template-columns: 1fr; }
+    }
+
+    .choice-btn {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 22px 14px;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 1rem; font-weight: 600;
+      color: var(--ink-soft);
+      gap: 6px;
+      transition: all 0.2s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .choice-btn .c-main { color: var(--ink); font-size: 1rem; line-height: 1.2; }
+    .choice-btn .c-sub  { font-size: 0.8rem; color: var(--ink-muted); font-weight: 400; }
+
+    .choice-btn:hover {
+      border-color: var(--sage-mid);
+      background: var(--surface-2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(44,62,48,0.09);
+    }
+    .choice-btn.selected {
+      background: var(--forest);
+      border-color: var(--forest);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 18px rgba(44,62,48,0.2);
+    }
+    .choice-btn.selected .c-main { color: #fff; }
+    .choice-btn.selected .c-sub  { color: rgba(255,255,255,0.55); }
+
+    /* tick on selected */
+    .choice-btn.selected::after {
+      content: '';
+      position: absolute; top: -5px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      background: var(--sage-mid);
+      border-radius: 50%;
+      border: 2px solid var(--surface);
+    }
+
+    /* ── PRIMARY BUTTON ─────────────────────── */
+    .btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; width: 100%;
+      padding: 16px 24px;
+      background: var(--forest);
+      color: var(--sage-pale);
+      border: none; border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover:not(:disabled) {
+      background: var(--forest-soft);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(44,62,48,0.22);
+    }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn .arr { transition: transform 0.2s; font-size: 1rem; }
+    .btn:hover:not(:disabled) .arr { transform: translateX(-4px); }
+
+    .btn-sage {
+      background: var(--sage);
+      color: #fff;
+    }
+    .btn-sage:hover:not(:disabled) { background: var(--sage-mid); }
+
+    /* ── NOTE ───────────────────────────────── */
+    .note {
+      margin-top: 22px;
+      padding: 13px 16px;
+      background: rgba(74,107,94,0.06);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.77rem;
+      color: var(--ink-muted);
+      line-height: 1.65;
+      font-style: italic;
+    }
+    .note strong { font-style: normal; color: var(--ink-soft); font-weight: 600; }
+
+    /* ── PROGRESS ───────────────────────────── */
+    .progress-wrap { margin-bottom: 24px; }
+    .progress-top {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 7px;
+    }
+    .progress-label {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+    .progress-count {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 700; color: var(--forest);
+    }
+    .progress-track {
+      height: 3px; background: var(--bg-3);
+      border-radius: 99px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--sage), var(--forest));
+      transition: width 0.5s var(--ease);
+    }
+
+    /* ── SITUATION ──────────────────────────── */
+    .situation {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-right: 3px solid var(--sage-mid);
+      border-radius: 0 6px 6px 0;
+      padding: 18px 20px;
+      margin-bottom: 22px;
+    }
+    .situation-label {
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sage-mid); margin-bottom: 7px;
+    }
+    .situation-text {
+      font-size: 1.05rem; line-height: 1.72; color: var(--ink);
+    }
+
+    /* ── ANSWERS ────────────────────────────── */
+    .answers { display: flex; flex-direction: column; gap: 10px; }
+
+    .ans-btn {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 20px;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 1rem; line-height: 1.65;
+      color: var(--ink-soft); text-align: right;
+      transition: all 0.18s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ans-btn:hover {
+      border-color: var(--sage-mid);
+      background: var(--surface-2);
+      transform: translateX(-3px);
+      box-shadow: 0 2px 12px rgba(44,62,48,0.08);
+      color: var(--ink);
+    }
+    .ans-btn.selected {
+      background: var(--forest);
+      border-color: var(--forest);
+      color: rgba(255,255,255,0.9);
+      transform: translateX(-3px);
+      box-shadow: 0 3px 14px rgba(44,62,48,0.18);
+    }
+    .ans-key {
+      flex-shrink: 0; width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--bg-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700;
+      color: var(--ink-muted);
+      transition: all 0.18s;
+    }
+    .ans-btn:hover .ans-key { background: var(--sage-pale); color: var(--forest); }
+    .ans-btn.selected .ans-key { background: var(--sage-mid); color: #fff; }
+    .ans-text { flex: 1; }
+
+    .kbd-hint {
+      text-align: center; font-size: 0.7rem;
+      color: var(--ink-muted); margin-top: 13px;
+      opacity: 0.5; letter-spacing: 0.05em;
+    }
+
+    /* ── LOADING ────────────────────────────── */
+    #screen-loading .card {
+      text-align: center; padding: 64px 44px;
+    }
+    .spin-wrap {
+      width: 64px; height: 64px; margin: 0 auto 24px;
+      animation: spin 2.2s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem; font-weight: 700;
+      color: var(--forest); margin-bottom: 7px;
+    }
+    .loading-sub {
+      font-size: 0.9rem; color: var(--ink-muted);
+      font-style: italic;
+    }
+    .dots::after {
+      content: '';
+      animation: dots 1.6s steps(4,end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      33%  { content: '.'; }
+      66%  { content: '..'; }
+      100% { content: '...'; }
+    }
+
+    /* ── CHART ──────────────────────────────── */
+    .chart-wrap {
+      position: relative; width: 100%; max-width: 520px;
+      margin: 0 auto 6px;
+    }
+    @media (max-width: 768px) {
+      .chart-wrap { max-width: 380px; }
+    }
+    .chart-outer {
+      border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border-mid);
+      box-shadow: 0 3px 16px rgba(44,62,48,0.1);
+      transition: filter 0.8s ease;
+    }
+    .chart-outer.blurred { filter: blur(8px) brightness(0.95); }
+    .chart-svg { width: 100%; aspect-ratio: 1; display: block; }
+
+    .chart-overlay {
+      position: absolute; inset: 0; pointer-events: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      padding: 12px;
+    }
+    .chart-qlabel {
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      font-size: 0.62rem; font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.3; letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    }
+    .chart-axis {
+      display: flex; justify-content: space-between;
+      padding: 0 3px; margin-top: 6px;
+    }
+    .chart-axis span {
+      font-size: 0.65rem; color: var(--ink-muted);
+    }
+
+    /* ── PERSONA REVEAL ─────────────────────── */
+    .persona-display {
+      text-align: center; margin: 20px 0 16px;
+    }
+    .persona-name {
+      font-family: var(--font-display);
+      font-size: 1.85rem; font-weight: 900;
+      color: var(--forest); line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .persona-name em { font-style: italic; color: var(--sage-mid); }
+    .persona-style {
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--sage-light); margin-top: 5px;
+    }
+
+    .teaser-text {
+      font-size: 0.99rem; line-height: 1.82;
+      color: var(--ink-soft); margin: 14px 0 22px;
+      font-style: italic;
+    }
+
+    /* ── FORM ───────────────────────────────── */
+    .gate-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--forest); text-align: center;
+      margin-bottom: 18px;
+    }
+    .field { margin-bottom: 13px; }
+    .field-label {
+      display: block; font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ink-soft);
+      margin-bottom: 6px;
+    }
+    .field-input {
+      width: 100%; padding: 12px 15px;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-family: var(--font-body); font-size: 1rem;
+      color: var(--ink); direction: ltr; text-align: left;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .field-input:focus {
+      border-color: var(--sage-mid);
+      box-shadow: 0 0 0 3px rgba(94,126,114,0.12);
+    }
+    .field-input::placeholder { color: var(--ink-muted); opacity: 0.55; }
+
+    .privacy {
+      text-align: center; font-size: 0.72rem;
+      color: var(--ink-muted); margin-top: 11px;
+      line-height: 1.55; font-style: italic;
+    }
+    .status {
+      text-align: center; font-size: 0.83rem;
+      color: var(--ink-muted); margin-top: 9px; min-height: 18px;
+    }
+
+    /* ── RESULTS ────────────────────────────── */
+    .score-rows { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+    .score-row {
+      display: grid;
+      grid-template-columns: 68px 1fr 36px;
+      align-items: center; gap: 11px;
+    }
+    .score-lbl {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--ink-soft); text-align: right;
+    }
+    .score-track {
+      height: 5px; background: var(--bg-3);
+      border-radius: 99px; overflow: hidden;
+    }
+    .score-fill {
+      height: 100%; border-radius: 99px;
+      transition: width 1.1s var(--ease) 0.35s;
+    }
+    .score-fill.w { background: linear-gradient(90deg, var(--sage-light), var(--sage)); }
+    .score-fill.s { background: linear-gradient(90deg, #8A9B5E, var(--forest)); }
+    .score-val {
+      font-family: var(--font-display);
+      font-size: 0.85rem; font-weight: 700;
+      color: var(--forest); text-align: left;
+    }
+
+    .res-desc {
+      font-size: 0.99rem; line-height: 1.85;
+      color: var(--ink-soft); margin-bottom: 16px;
+    }
+
+    .secondary {
+      padding: 14px 18px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-right: 3px solid var(--sage-light);
+      border-radius: 0 6px 6px 0;
+      font-size: 0.85rem; line-height: 1.65;
+      color: var(--ink-muted); margin-bottom: 26px;
+    }
+    .secondary strong { color: var(--ink-soft); }
+
+    /* ── CTA ────────────────────────────────── */
+    .cta {
+      background: var(--forest);
+      border-radius: 10px;
+      padding: 30px 32px;
+      text-align: center;
+    }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem; font-weight: 900;
+      color: var(--sage-pale); margin-bottom: 8px; line-height: 1.2;
+    }
+    .cta-body {
+      font-size: 0.88rem; color: rgba(255,255,255,0.58);
+      line-height: 1.65; margin-bottom: 20px;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 13px 26px;
+      background: var(--sage-mid); color: #fff;
+      border: none; border-radius: 7px;
+      font-family: var(--font-body);
+      font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s var(--ease);
+    }
+    .cta-btn:hover {
+      background: var(--sage-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(44,62,48,0.3);
+    }
+    .cta-btn .arr { transition: transform 0.2s; }
+    .cta-btn:hover .arr { transform: translateX(-4px); }
+
+    .retake {
+      text-align: center; margin-top: 20px;
+    }
+    .retake button {
+      font-size: 0.81rem; color: var(--ink-muted);
+      cursor: pointer; text-decoration: underline;
+      text-underline-offset: 3px; font-style: italic;
+      background: none; border: none;
+      font-family: var(--font-body);
+      transition: color 0.15s;
+    }
+    .retake button:hover { color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SCREEN 1: INTRO ══ -->
+  <div id="screen-intro" class="screen active">
+    <div class="masthead">
+      <div class="masthead-byline">ד"ר ערן כץ · The Parenting MAP</div>
+      <div class="masthead-title">הפרופיל <em>ההורי</em> שלי</div>
+      <div class="masthead-sub">גלה/י את סגנון ההורות שלך</div>
+      <div class="masthead-rule"></div>
+    </div>
+
+    <div class="card">
+      <p class="lead">
+        10 סיטואציות אמיתיות מחיי ההורות היומיומיים.
+        תגובה אחת שהכי קרובה למה שקורה אצלך בפועל.
+        בסוף — פרופיל שמראה בדיוק איפה את/ה עומד/ת, ולאן אפשר ללכת.
+      </p>
+
+      <div class="choice-group">
+        <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+        <p class="choice-hint">
+          בחר/י את הילד שאתה/את הכי מתמודד/ת איתו/ה כרגע —
+          ותקבל/י שאלות שמדברות ממש על הגיל הזה.
+        </p>
+        <div class="choice-grid cols-3">
+          <button class="choice-btn" data-group="age" data-value="toddlers">
+            <span class="c-main">גילאי 3–6</span>
+            <span class="c-sub">גן וגיל הרך</span>
+          </button>
+          <button class="choice-btn" data-group="age" data-value="school">
+            <span class="c-main">גילאי 7–12</span>
+            <span class="c-sub">גיל בית הספר</span>
+          </button>
+          <button class="choice-btn" data-group="age" data-value="teens">
+            <span class="c-main">גילאי 13–18</span>
+            <span class="c-sub">גיל ההתבגרות</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="choice-group">
+        <div class="s-label">איך לפנות אליך?</div>
+        <div class="choice-grid cols-3">
+          <button class="choice-btn" data-group="gender" data-value="m">
+            <span class="c-main">לשון זכר</span>
+          </button>
+          <button class="choice-btn" data-group="gender" data-value="f">
+            <span class="c-main">לשון נקבה</span>
+          </button>
+          <button class="choice-btn" data-group="gender" data-value="n">
+            <span class="c-main">ניטרלית</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-start" class="btn" disabled>
+        <span>מתחילים</span>
+        <span class="arr">←</span>
+      </button>
+
+      <div class="note">
+        <strong>הערה:</strong> שאלון זה הוא כלי לחשיבה עצמית ואינו כלי אבחוני.
+        התוצאות נועדו לסייע בחשיבה על דפוסי ההורות שלך — לא לתייג אותך.
+        — ד"ר ערן כץ, פסיכולוג קליני
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: QUIZ ══ -->
+  <div id="screen-quiz" class="screen">
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span class="progress-label" id="q-label">שאלה 1 מתוך 10</span>
+          <span class="progress-count" id="q-count">1/10</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="prog" style="width:10%"></div>
+        </div>
+      </div>
+
+      <div class="situation">
+        <div class="situation-label">הסיטואציה</div>
+        <div class="situation-text" id="situation-text"></div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+
+      <p class="kbd-hint">מקשי קיצור: A · B · C · D &nbsp;·&nbsp; Enter למעבר</p>
+
+      <div style="margin-top:18px;">
+        <button id="btn-next" class="btn" disabled>
+          <span id="next-label">שאלה הבאה</span>
+          <span class="arr">←</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 3: LOADING ══ -->
+  <div id="screen-loading" class="screen">
+    <div class="masthead">
+      <div class="masthead-title">הפרופיל <em>ההורי</em> שלי</div>
+    </div>
+    <div class="card">
+      <div class="spin-wrap">
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#DDE5D8" stroke-width="3"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="#4A6B5E" stroke-width="3"
+                  stroke-dasharray="60 154" stroke-linecap="round"/>
+          <line x1="40" y1="8" x2="40" y2="32" stroke="#2C3E30" stroke-width="2" stroke-linecap="round"/>
+          <polygon points="40,6 37,14 43,14" fill="#5E7E72"/>
+          <line x1="40" y1="48" x2="40" y2="68" stroke="#8A9B8E" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="40" cy="40" r="4" fill="#2C3E30"/>
+        </svg>
+      </div>
+      <div class="loading-title">מחשב את הפרופיל שלך<span class="dots"></span></div>
+      <div class="loading-sub">מנתח 10 תגובות ומאתר את סגנון ההורות שלך</div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 4: TEASER ══ -->
+  <div id="screen-teaser" class="screen">
+    <div class="masthead">
+      <div class="masthead-byline">הפרופיל ההורי שלך</div>
+      <div class="masthead-title" style="font-size:clamp(1.8rem,5vw,2.5rem);">תוצאות <em>ראשוניות</em></div>
+      <div class="masthead-rule"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-wrap">
+        <div class="chart-outer blurred" id="chart-teaser">
+          <svg class="chart-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0"   y="0"   width="200" height="200" fill="#1F3A4A"/>
+            <rect x="200" y="0"   width="200" height="200" fill="#1B3A2C"/>
+            <rect x="0"   y="200" width="200" height="200" fill="#3A1F1F"/>
+            <rect x="200" y="200" width="200" height="200" fill="#2A3A1F"/>
+            <line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="0" y1="300" x2="400" y2="300" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="100" y1="0" x2="100" y2="400" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="300" y1="0" x2="300" y2="400" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="200" y1="0" x2="200" y2="400" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+            <line x1="0" y1="200" x2="400" y2="200" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+            <circle cx="200" cy="200" r="3" fill="rgba(255,255,255,0.25)"/>
+            <g id="ship-t" transform="translate(200,200)">
+              <circle r="20" fill="#5E7E72" opacity="0.9"/>
+              <circle r="16" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+              <line x1="0" y1="-8" x2="0" y2="8" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-8" y1="0" x2="8" y2="0" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+        <div class="chart-overlay">
+          <div class="chart-qlabel">הקצין<br/>הנוקשה</div>
+          <div class="chart-qlabel">רב-חובל<br/>מנווט</div>
+          <div class="chart-qlabel">הספן<br/>האבוד</div>
+          <div class="chart-qlabel">הספן<br/>החברמן</div>
+        </div>
+      </div>
+      <div class="chart-axis">
+        <span>← חמימות נמוכה</span>
+        <span>חמימות גבוהה →</span>
+      </div>
+
+      <div class="persona-display">
+        <div class="persona-name" id="t-name"></div>
+        <div class="persona-style" id="t-style"></div>
+      </div>
+
+      <p class="teaser-text" id="t-desc"></p>
+
+      <div class="divider"><span>לקבלת הפרופיל המלא</span></div>
+
+      <div class="gate-title">גלה/י מה זה אומר עליך ומה אפשר לעשות עם זה</div>
+
+      <div class="field">
+        <label class="field-label" for="inp-name">שם פרטי</label>
+        <input type="text" id="inp-name" class="field-input" placeholder="הכנס/י שם פרטי" autocomplete="given-name"/>
+      </div>
+      <div class="field">
+        <label class="field-label" for="inp-email">אימייל</label>
+        <input type="email" id="inp-email" class="field-input" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+
+      <button id="btn-submit" class="btn btn-sage" style="margin-top:6px;">
+        <span>פתח/י את הפרופיל המלא</span>
+        <span class="arr">←</span>
+      </button>
+      <div id="status" class="status"></div>
+      <p class="privacy">הפרטים שלך מוגנים ולא יועברו לצד שלישי.<br/>תקבל/י מייל מד"ר ערן כץ עם תובנות נוספות.</p>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 5: FULL RESULTS ══ -->
+  <div id="screen-results" class="screen">
+    <div class="masthead">
+      <div class="masthead-byline">הפרופיל ההורי שלך · תוצאות מלאות</div>
+      <div class="masthead-title" style="font-size:clamp(1.9rem,5.5vw,2.7rem);" id="r-name-display"></div>
+      <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--sage-light);margin-top:6px;text-align:center;" id="r-style-display"></div>
+      <div class="masthead-rule"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-wrap">
+        <div class="chart-outer" id="chart-full">
+          <svg class="chart-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0"   y="0"   width="200" height="200" fill="#1F3A4A"/>
+            <rect x="200" y="0"   width="200" height="200" fill="#1B3A2C"/>
+            <rect x="0"   y="200" width="200" height="200" fill="#3A1F1F"/>
+            <rect x="200" y="200" width="200" height="200" fill="#2A3A1F"/>
+            <line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="0" y1="300" x2="400" y2="300" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="100" y1="0" x2="100" y2="400" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="300" y1="0" x2="300" y2="400" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="200" y1="0" x2="200" y2="400" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+            <line x1="0" y1="200" x2="400" y2="200" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+            <circle cx="200" cy="200" r="3" fill="rgba(255,255,255,0.25)"/>
+            <circle id="pulse" cx="200" cy="200" r="20" fill="none" stroke="#5E7E72" stroke-width="1.5" opacity="0.4">
+              <animate attributeName="r" values="20;38;20" dur="2.4s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.4;0;0.4" dur="2.4s" repeatCount="indefinite"/>
+            </circle>
+            <g id="ship-f" transform="translate(200,200)">
+              <circle r="20" fill="#5E7E72" opacity="0.95"/>
+              <circle r="16" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+              <line x1="0" y1="-8" x2="0" y2="8" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round"/>
+              <line x1="-8" y1="0" x2="8" y2="0" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+        <div class="chart-overlay">
+          <div class="chart-qlabel">הקצין<br/>הנוקשה</div>
+          <div class="chart-qlabel">רב-חובל<br/>מנווט</div>
+          <div class="chart-qlabel">הספן<br/>האבוד</div>
+          <div class="chart-qlabel">הספן<br/>החברמן</div>
+        </div>
+      </div>
+      <div class="chart-axis">
+        <span>← חמימות נמוכה</span>
+        <span>חמימות גבוהה →</span>
+      </div>
+
+      <div class="score-rows">
+        <div class="score-row">
+          <div class="score-lbl">חמימות</div>
+          <div class="score-track"><div class="score-fill w" id="bar-w" style="width:50%"></div></div>
+          <div class="score-val" id="val-w"></div>
+        </div>
+        <div class="score-row">
+          <div class="score-lbl">מסגרת</div>
+          <div class="score-track"><div class="score-fill s" id="bar-s" style="width:50%"></div></div>
+          <div class="score-val" id="val-s"></div>
+        </div>
+      </div>
+
+      <div class="divider"><span>הפרופיל שלך</span></div>
+
+      <p class="res-desc" id="r-desc"></p>
+      <div class="secondary" id="secondary"></div>
+
+      <div class="cta">
+        <div class="cta-title">רוצה ללמוד לנווט טוב יותר?</div>
+        <p class="cta-body">שיחת ניווט הורי של 90 דקות עם ד"ר ערן כץ — לחשוב ביחד על הדפוסים שלך ולבנות כלים אמיתיים.</p>
+        <a href="https://theparentingmap.com/session" class="cta-btn" target="_blank">
+          לפרטים ותיאום שיחה
+          <span class="arr">←</span>
+        </a>
+      </div>
+
+      <div class="retake">
+        <button id="btn-retake">רוצה לענות שוב על ילד אחר? התחל/י מחדש</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/personas.js"></script>
+<script src="js/questions.js"></script>
+<script>
+const S = {
+  age:null, gender:null,
+  questions:[], idx:0, picks:[],
+  scores:{w:0,s:0},
+  persona:null, secondary:null,
+  name:'', email:''
+};
+
+const t = o => o?.[S.gender] ?? o?.n ?? '';
+const $ = id => document.getElementById(id);
+
+// P is a shorthand alias for PERSONAS (defined in personas.js)
+const P = PERSONAS;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function getPersona(w,s){
+  if(w>=0&&s>=0)return'navigating_captain';
+  if(w<0&&s>=0)return'rigid_officer';
+  if(w>=0&&s<0)return'buddy_sailor';
+  return'lost_sailor';
+}
+
+function getSecondary(w,s){
+  const aw=Math.abs(w),as=Math.abs(s);
+  if(aw<as)return w>=0?'rigid_officer':'buddy_sailor';
+  if(as<aw)return s>=0?'buddy_sailor':'rigid_officer';
+  return null;
+}
+
+function toSVG(v){ return 40+((v+10)/20)*320; }
+
+// Screen 1
+document.querySelectorAll('.choice-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const{group,value}=b.dataset;
+    document.querySelectorAll(`.choice-btn[data-group="${group}"]`).forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    if(group==='age')S.age=value; else S.gender=value;
+    $('btn-start').disabled=!(S.age&&S.gender);
+  });
+});
+
+$('btn-start').addEventListener('click',()=>{
+  S.questions=getQuestions(S.age).map(q=>({...q,answers:shuffleAnswers(q.answers)}));
+  S.idx=0; S.picks=[]; S.scores={w:0,s:0};
+  renderQ(); show('screen-quiz');
+});
+
+// Screen 2
+const KEYS=['A','B','C','D'];
+
+function renderQ(){
+  const q=S.questions[S.idx], n=S.idx+1, tot=S.questions.length;
+  $('q-label').textContent=`שאלה ${n} מתוך ${tot}`;
+  $('q-count').textContent=`${n}/${tot}`;
+  $('prog').style.width=`${(n/tot)*100}%`;
+  $('situation-text').textContent=t(q.situation);
+  $('next-label').textContent=n===tot?'סיימתי':'שאלה הבאה';
+  $('btn-next').disabled=true;
+  const grid=$('answers');
+  grid.innerHTML='';
+  q.answers.forEach((a,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn'; btn.dataset.i=i;
+    btn.innerHTML=`<span class="ans-key">${KEYS[i]}</span><span class="ans-text">${t(a.text)}</span>`;
+    btn.addEventListener('click',()=>pick(i));
+    grid.appendChild(btn);
+  });
+}
+
+function pick(i){
+  document.querySelectorAll('.ans-btn').forEach((b,j)=>b.classList.toggle('selected',j===i));
+  S.picks[S.idx]=i;
+  $('btn-next').disabled=false;
+}
+
+document.addEventListener('keydown',e=>{
+  if(!$('screen-quiz').classList.contains('active'))return;
+  const k=e.key.toUpperCase(),i=KEYS.indexOf(k);
+  if(i>-1&&i<S.questions[S.idx].answers.length)pick(i);
+  if(e.key==='Enter'&&!$('btn-next').disabled)next();
+});
+
+$('btn-next').addEventListener('click',next);
+
+function next(){
+  const a=S.questions[S.idx].answers[S.picks[S.idx]];
+  S.scores.w+=a.scores.warmth;
+  S.scores.s+=a.scores.structure;
+  if(S.idx<S.questions.length-1){ S.idx++; renderQ(); }
+  else{ show('screen-loading'); setTimeout(buildTeaser,2400); }
+}
+
+// Screen 4
+function buildTeaser(){
+  const{w,s}=S.scores;
+  S.persona=getPersona(w,s);
+  S.secondary=getSecondary(w,s);
+  const p=P[S.persona];
+  $('t-name').innerHTML=p.nameHTML;
+  $('t-style').textContent=p.baumrind;
+  $('t-desc').textContent=t(p.teaser);
+  const x=toSVG(w), y=toSVG(-s);
+  $('ship-t').setAttribute('transform',`translate(${x},${y})`);
+  show('screen-teaser');
+}
+
+// Email gate
+$('btn-submit').addEventListener('click',async()=>{
+  const name=$('inp-name').value.trim();
+  const email=$('inp-email').value.trim();
+  const st=$('status');
+  if(!name){st.textContent='נא להזין שם פרטי';return;}
+  if(!email||!email.includes('@')){st.textContent='נא להזין אימייל תקין';return;}
+  S.name=name; S.email=email;
+  st.textContent='שולח...';
+  $('btn-submit').disabled=true;
+  try{
+    await fetch('/.netlify/functions/subscribe',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,persona:S.persona,ageGroup:S.age,warmth:S.scores.w,structure:S.scores.s})
+    });
+  }catch(e){console.warn('subscribe error:',e);}
+  st.textContent='';
+  buildResults();
+});
+
+// Screen 5
+function buildResults(){
+  const{w,s}=S.scores, p=P[S.persona];
+  $('r-name-display').innerHTML=p.nameHTML;
+  $('r-style-display').textContent=p.baumrind;
+  $('r-desc').textContent=`${S.name}, `+t(p.description);
+  $('bar-w').style.width=`${((w+10)/20)*100}%`;
+  $('bar-s').style.width=`${((s+10)/20)*100}%`;
+  $('val-w').textContent=w>0?`+${w}`:`${w}`;
+  $('val-s').textContent=s>0?`+${s}`:`${s}`;
+  const x=toSVG(w), y=toSVG(-s);
+  $('ship-f').setAttribute('transform',`translate(${x},${y})`);
+  $('pulse').setAttribute('cx',x);
+  $('pulse').setAttribute('cy',y);
+  const sec=$('secondary');
+  if(S.secondary&&S.secondary!==S.persona){
+    const sp=P[S.secondary];
+    sec.innerHTML=`<strong>נטייה משנית:</strong> הניקוד שלך מראה גם נגיעות של ${sp.baumrind.split('·')[0].trim()}. זה אומר שאת/ה לא "טיפוס אחד", יש גמישות שם שאפשר לעבוד איתה.`;
+  } else { sec.style.display='none'; }
+  show('screen-results');
+}
+
+// Retake
+$('btn-retake').addEventListener('click',()=>{
+  Object.assign(S,{age:null,gender:null,questions:[],idx:0,picks:[],scores:{w:0,s:0},persona:null,secondary:null,name:'',email:''});
+  document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  $('btn-start').disabled=true;
+  $('inp-name').value=''; $('inp-email').value='';
+  $('status').textContent='';
+  $('btn-submit').disabled=false;
+  show('screen-intro');
+});
+</script>
+</body>
+</html>
