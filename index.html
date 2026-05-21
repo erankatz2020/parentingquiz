@@ -237,7 +237,11 @@
       background: var(--sage-mid);
       border-radius: 50%;
       border: 2px solid var(--surface);
+      pointer-events: none;
     }
+
+    /* prevent child spans from absorbing clicks */
+    .choice-btn * { pointer-events: none; }
 
     /* ── PRIMARY BUTTON ─────────────────────── */
     .btn {
