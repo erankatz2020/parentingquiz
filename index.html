@@ -374,9 +374,9 @@
     .ans-text { flex: 1; }
 
     .kbd-hint {
-      text-align: center; font-size: 0.7rem;
+      text-align: center; font-size: 0.78rem;
       color: var(--ink-muted); margin-top: 13px;
-      opacity: 0.5; letter-spacing: 0.05em;
+      opacity: 0.7; letter-spacing: 0.03em;
     }
 
     /* ── LOADING ────────────────────────────── */
@@ -593,17 +593,18 @@
     .cta-btn:hover .arr { transform: translateX(-4px); }
 
     .retake {
-      text-align: center; margin-top: 20px;
+      text-align: center; margin-top: 28px;
     }
     .retake button {
-      font-size: 0.81rem; color: var(--ink-muted);
+      font-size: 1rem; color: var(--forest);
       cursor: pointer; text-decoration: underline;
-      text-underline-offset: 3px; font-style: italic;
+      text-underline-offset: 4px;
       background: none; border: none;
       font-family: var(--font-body);
+      font-weight: 600;
       transition: color 0.15s;
     }
-    .retake button:hover { color: var(--ink-soft); }
+    .retake button:hover { color: var(--ink); }
   </style>
 </head>
 <body>
@@ -695,7 +696,7 @@
 
       <div class="answers" id="answers"></div>
 
-      <p class="kbd-hint">מקשי קיצור: A · B · C · D &nbsp;·&nbsp; Enter למעבר</p>
+      <p class="kbd-hint">ניתן ללחוץ על מקשי A B C D בהתאם לתשובה, וללחוץ Enter להמשך</p>
 
       <div style="margin-top:18px;">
         <button id="btn-next" class="btn" disabled>
@@ -766,10 +767,7 @@
           <div class="chart-qlabel">הספן<br/>החברמן</div>
         </div>
       </div>
-      <div class="chart-axis">
-        <span>← חמימות נמוכה</span>
-        <span>חמימות גבוהה →</span>
-      </div>
+
 
       <div class="persona-display">
         <div class="persona-name" id="t-name"></div>
@@ -843,10 +841,7 @@
           <div class="chart-qlabel">הספן<br/>החברמן</div>
         </div>
       </div>
-      <div class="chart-axis">
-        <span>← חמימות נמוכה</span>
-        <span>חמימות גבוהה →</span>
-      </div>
+
 
       <div class="score-rows">
         <div class="score-row">
@@ -869,14 +864,14 @@
       <div class="cta">
         <div class="cta-title">רוצה ללמוד לנווט טוב יותר?</div>
         <p class="cta-body">שיחת ניווט הורי של 90 דקות עם ד"ר ערן כץ — לחשוב ביחד על הדפוסים שלך ולבנות כלים אמיתיים.</p>
-        <a href="https://theparentingmap.com/session" class="cta-btn" target="_blank">
+        <a href="https://www.theparentingmap.com/navigate" class="cta-btn" target="_blank">
           לפרטים ותיאום שיחה
           <span class="arr">←</span>
         </a>
       </div>
 
       <div class="retake">
-        <button id="btn-retake">רוצה לענות שוב על ילד אחר? התחל/י מחדש</button>
+        <button id="btn-retake">רוצה לענות שוב על ילד אחר? לחץ כאן להתחלה מחדש</button>
       </div>
     </div>
   </div>
