@@ -242,6 +242,7 @@
 
     /* prevent child spans from absorbing clicks */
     .choice-btn * { pointer-events: none; }
+    .btn * { pointer-events: none; }
 
     /* ── PRIMARY BUTTON ─────────────────────── */
     .btn {
@@ -1020,7 +1021,7 @@ function buildResults(){
   const{w,s}=S.scores, p=P[S.persona];
   $('r-name-display').innerHTML=p.nameHTML;
   $('r-style-display').textContent=p.baumrind;
-  $('r-desc').textContent=`${S.name}, `+t(p.description);
+  $('r-desc').textContent=`${S.name}, `+(typeof p.description === 'string' ? p.description : t(p.description));
   $('bar-w').style.width=`${((w+10)/20)*100}%`;
   $('bar-s').style.width=`${((s+10)/20)*100}%`;
   $('val-w').textContent=w>0?`+${w}`:`${w}`;
