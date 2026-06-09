@@ -49,9 +49,8 @@ exports.handler = async (event) => {
       {
         method: 'POST',
         headers: {
-          'Content-Type':    'application/json',
-          'Authorization':   `Bearer ${clientToken}`,
-          'X-Client-Secret': clientSecret,
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${process.env.RAVMESSER_CLIENT_ID}:${clientToken}`).toString('base64')}`,
         },
         body: JSON.stringify({
           subscribers: [{ NAME: name, EMAIL: email, NOTIFY: 2 }]
