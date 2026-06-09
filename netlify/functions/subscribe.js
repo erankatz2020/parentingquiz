@@ -60,7 +60,11 @@ exports.handler = async (event) => {
     );
 
     const result = await response.json();
+    console.log('רב מסר status:', response.status);
     console.log('רב מסר response:', JSON.stringify(result));
+    console.log('listId:', listId);
+    console.log('clientToken present:', !!clientToken);
+    console.log('clientSecret present:', !!clientSecret);
 
     return {
       statusCode: 200,
