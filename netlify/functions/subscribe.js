@@ -7,27 +7,37 @@ const LIST_IDS = {
   lost_sailor:        { toddlers: 101675, school: 101676, teens: 101677 },
 };
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: CORS, body: '' };
+  }
+
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+    return { statusCode: 405, headers: CORS, body: 'Method not allowed' };
   }
 
   let body;
   try {
     body = JSON.parse(event.body);
   } catch {
-    return { statusCode: 400, body: 'Invalid JSON' };
+    return { statusCode: 400, headers: CORS, body: 'Invalid JSON' };
   }
 
   const { name, email, persona, ageGroup } = body;
 
   if (!name || !email || !persona || !ageGroup) {
-    return { statusCode: 400, body: 'Missing required fields' };
+    return { statusCode: 400, headers: CORS, body: 'Missing required fields' };
   }
 
   const listId = LIST_IDS[persona]?.[ageGroup];
   if (!listId) {
-    return { statusCode: 400, body: `Unknown persona/ageGroup: ${persona}/${ageGroup}` };
+    return { statusCode: 400, headers: CORS, body: `Unknown persona/ageGroup: ${persona}/${ageGroup}` };
   }
 
   const clientToken  = process.env.RAVMESSER_CLIENT_TOKEN;
@@ -54,7 +64,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS, 'Content-Type': 'application/json' },
       body: JSON.stringify({ ok: true }),
     };
 
@@ -62,6 +72,7 @@ exports.handler = async (event) => {
     console.error('Subscribe error:', err);
     return {
       statusCode: 200,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
       body: JSON.stringify({ ok: false, error: err.message }),
     };
   }
