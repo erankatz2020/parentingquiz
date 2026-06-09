@@ -69,7 +69,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, ravmesser: result, listId, tokenPresent: !!clientToken, secretPresent: !!clientSecret }),
     };
 
   } catch (err) {
