@@ -1,11 +1,4 @@
-const API_BASE = 'https://api.responder.co.il/v2.0';
-
-const LIST_IDS = {
-  navigating_captain: { toddlers: 101666, school: 101667, teens: 101668 },
-  rigid_officer:      { toddlers: 101669, school: 101670, teens: 101671 },
-  buddy_sailor:       { toddlers: 101672, school: 101673, teens: 101674 },
-  lost_sailor:        { toddlers: 101675, school: 101676, teens: 101677 },
-};
+const INTEGRATELY_WEBHOOK = 'https://webhooks.integrately.com/a/webhooks/0dbbf34454264af387b1af5ef7874561';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -35,40 +28,19 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: 'Missing required fields' };
   }
 
-  const listId = LIST_IDS[persona]?.[ageGroup];
-  if (!listId) {
-    return { statusCode: 400, headers: CORS, body: `Unknown persona/ageGroup: ${persona}/${ageGroup}` };
-  }
-
-  const clientToken  = process.env.RAVMESSER_CLIENT_TOKEN;
-  const clientSecret = process.env.RAVMESSER_CLIENT_SECRET;
-
   try {
-    const response = await fetch(
-      `${API_BASE}/lists/${listId}/subscribers`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${Buffer.from(`${process.env.RAVMESSER_CLIENT_ID}:${clientToken}`).toString('base64')}`,
-        },
-        body: JSON.stringify({
-          subscribers: [{ NAME: name, EMAIL: email, NOTIFY: 2 }]
-        }),
-      }
-    );
+    const response = await fetch(INTEGRATELY_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, persona, ageGroup }),
+    });
 
-    const result = await response.json();
-    console.log('רב מסר status:', response.status);
-    console.log('רב מסר response:', JSON.stringify(result));
-    console.log('listId:', listId);
-    console.log('clientToken present:', !!clientToken);
-    console.log('clientSecret present:', !!clientSecret);
+    console.log('Integrately response:', response.status);
 
     return {
       statusCode: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true, ravmesser: result, listId, tokenPresent: !!clientToken, secretPresent: !!clientSecret }),
+      body: JSON.stringify({ ok: true }),
     };
 
   } catch (err) {
