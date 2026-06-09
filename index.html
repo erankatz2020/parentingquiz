@@ -1006,14 +1006,14 @@ $('btn-submit').addEventListener('click',async()=>{
   st.textContent='שולח...';
   $('btn-submit').disabled=true;
   try{
-    const res = await fetch('/.netlify/functions/subscribe',{
+    const res = await fetch('https://parentingmapquiz.netlify.app/.netlify/functions/subscribe',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({name,email,persona:S.persona,ageGroup:S.age,warmth:S.scores.w,structure:S.scores.s})
     });
     const data = await res.json();
     console.log('subscribe response:', res.status, data);
-  }catch(e){console.warn('subscribe error:',e);}
+  }catch(e){console.warn('subscribe error:',e);}  
   st.textContent='';
   buildResults();
 });
