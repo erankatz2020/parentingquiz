@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>הפרופיל ההורי שלי — ד"ר ערן כץ</title>
+  <title>הפרופיל ההורי שלי — ד"ר ערן כ"ץ</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -146,16 +146,23 @@
 
     /* ── SECTION LABEL ──────────────────────── */
     .s-label {
-      font-size: 0.68rem;
+      font-size: 1.05rem;
       font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--sage-mid);
+      letter-spacing: 0.01em;
+      text-transform: none;
+      color: var(--ink);
       margin-bottom: 10px;
     }
 
     .lead {
-      font-size: 1.1rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+    .lead-sub {
+      font-size: 1.02rem;
       line-height: 1.78;
       color: var(--ink-soft);
       margin-bottom: 36px;
@@ -276,17 +283,35 @@
 
     /* ── NOTE ───────────────────────────────── */
     .note {
-      margin-top: 22px;
+      margin-top: 18px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      line-height: 1.6;
+    }
+    .note strong { font-style: normal; color: var(--ink-soft); font-weight: 600; }
+
+    .consent-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin: 22px 0 18px;
       padding: 13px 16px;
       background: rgba(74,107,94,0.06);
       border-radius: 6px;
       border: 1px solid var(--border);
-      font-size: 0.77rem;
+    }
+    .consent-checkbox {
+      margin-top: 3px;
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      accent-color: var(--sage-mid);
+      cursor: pointer;
+    }
+    .consent-label {
+      font-size: 0.78rem;
       color: var(--ink-muted);
       line-height: 1.65;
-      font-style: italic;
+      cursor: pointer;
     }
-    .note strong { font-style: normal; color: var(--ink-soft); font-weight: 600; }
 
     /* ── PROGRESS ───────────────────────────── */
     .progress-wrap { margin-bottom: 24px; }
@@ -614,7 +639,7 @@
   <!-- ══ SCREEN 1: INTRO ══ -->
   <div id="screen-intro" class="screen active">
     <div class="masthead">
-      <div class="masthead-byline">ד"ר ערן כץ · The Parenting MAP</div>
+      <div class="masthead-byline">ד"ר ערן כ"ץ · The Parenting MAP</div>
       <div class="masthead-title">הפרופיל <em>ההורי</em> שלי</div>
       <div class="masthead-sub">גלה/י את סגנון ההורות שלך</div>
       <div class="masthead-rule"></div>
@@ -622,16 +647,18 @@
 
     <div class="card">
       <p class="lead">
-        10 סיטואציות אמיתיות מחיי ההורות היומיומיים.
-        תגובה אחת שהכי קרובה למה שקורה אצלך בפועל.
-        בסוף — פרופיל שמראה בדיוק איפה את/ה עומד/ת, ולאן אפשר ללכת.
+        איזה הורה אני בעצם?
+      </p>
+      <p class="lead-sub">
+        השאלון הזה יכול לעזור לכם לגלות את סגנון ההורות שאתם נוטים אליו. הוא מבוסס על מודל סגנונות ההורות של באומרינד, אחד המודלים הכי נחקרים בעולם ההורות, ובסופו תגלו לאיזה פרופיל הורי אתם נוטים: כמה מסגרת וגבולות אתם מציבים מצד אחד, וכמה חמימות וחיבור רגשי אתם מספקים מצד שני.
+        <br/><br/>
+        מילוי השאלון לוקח כמה דקות ספורות ולא עולה כסף. מומלץ להתמקד בילד אחד בכל מילוי של השאלון (מי יודע, אולי תגלו שיש לכם סגנון שונה עם כל ילד).
       </p>
 
       <div class="choice-group">
         <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
         <p class="choice-hint">
-          בחר/י את הילד שאתה/את הכי מתמודד/ת איתו/ה כרגע —
-          ותקבל/י שאלות שמדברות ממש על הגיל הזה.
+          בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.
         </p>
         <div class="choice-grid cols-3">
           <button class="choice-btn" data-group="age" data-value="toddlers">
@@ -650,7 +677,7 @@
       </div>
 
       <div class="choice-group">
-        <div class="s-label">איך לפנות אליך?</div>
+        <div class="s-label">מה לשון הפניה המועדפת עליך?</div>
         <div class="choice-grid cols-3">
           <button class="choice-btn" data-group="gender" data-value="m">
             <span class="c-main">לשון זכר</span>
@@ -664,15 +691,20 @@
         </div>
       </div>
 
+      <div class="consent-row">
+        <input type="checkbox" id="chk-consent" class="consent-checkbox"/>
+        <label for="chk-consent" class="consent-label">
+          מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד שאיננו כלי אבחוני. השאלון ותוצאותיו לא מהוות התערבות פסיכולוגית או אבחון רשמי, ואינם תחליף לטיפול או הדרכה מקצועיים. המטרה היא לעזור לכם לחשוב על דפוסי ההורות שלכם כדי שתוכלו להגשים את המשאלות שלכם כהורים.
+        </label>
+      </div>
+
       <button id="btn-start" class="btn" disabled>
         <span>מתחילים</span>
         <span class="arr">←</span>
       </button>
 
       <div class="note">
-        <strong>הערה:</strong> שאלון זה הוא כלי לחשיבה עצמית ואינו כלי אבחוני.
-        התוצאות נועדו לסייע בחשיבה על דפוסי ההורות שלך — לא לתייג אותך.
-        — ד"ר ערן כץ, פסיכולוג קליני
+        שאלון הפרופיל ההורי מוגש לכם ונוצר על ידי ד"ר ערן כ"ץ, פסיכולוג קליני ויוצר "מפת ההורות".
       </div>
     </div>
   </div>
@@ -795,7 +827,7 @@
         <span class="arr">←</span>
       </button>
       <div id="status" class="status"></div>
-      <p class="privacy">הפרטים שלך מוגנים ולא יועברו לצד שלישי.<br/>תקבל/י מייל מד"ר ערן כץ עם תובנות נוספות.</p>
+      <p class="privacy">הפרטים שלך מוגנים ולא יועברו לצד שלישי.<br/>תקבל/י מייל מד"ר ערן כ"ץ עם תובנות נוספות.</p>
     </div>
   </div>
 
@@ -864,7 +896,7 @@
 
       <div class="cta">
         <div class="cta-title">רוצה ללמוד לנווט טוב יותר?</div>
-        <p class="cta-body">שיחת ניווט הורי של 90 דקות עם ד"ר ערן כץ — לחשוב ביחד על הדפוסים שלך ולבנות כלים אמיתיים.</p>
+        <p class="cta-body">שיחת ניווט הורי של 90 דקות עם ד"ר ערן כ"ץ — לחשוב ביחד על הדפוסים שלך ולבנות כלים אמיתיים.</p>
         <a href="https://www.theparentingmap.com/navigate" class="cta-btn" target="_blank">
           לפרטים ותיאום שיחה
           <span class="arr">←</span>
@@ -920,15 +952,21 @@ function toSVG(v){ return 40+((v+10)/20)*320; }
 function toSVGx(v){ return toSVG(v); } // SVG is LTR, no flip needed
 
 // Screen 1
+function updateStartBtn(){
+  $('btn-start').disabled=!(S.age&&S.gender&&$('chk-consent').checked);
+}
+
 document.querySelectorAll('.choice-btn').forEach(b=>{
   b.addEventListener('click',()=>{
     const{group,value}=b.dataset;
     document.querySelectorAll(`.choice-btn[data-group="${group}"]`).forEach(x=>x.classList.remove('selected'));
     b.classList.add('selected');
     if(group==='age')S.age=value; else S.gender=value;
-    $('btn-start').disabled=!(S.age&&S.gender);
+    updateStartBtn();
   });
 });
+
+$('chk-consent').addEventListener('change',updateStartBtn);
 
 $('btn-start').addEventListener('click',()=>{
   S.questions=getQuestions(S.age).map(q=>({...q,answers:shuffleAnswers(q.answers)}));
@@ -1006,14 +1044,12 @@ $('btn-submit').addEventListener('click',async()=>{
   st.textContent='שולח...';
   $('btn-submit').disabled=true;
   try{
-    const res = await fetch('/.netlify/functions/subscribe',{
+    await fetch('/.netlify/functions/subscribe',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({name,email,persona:S.persona,ageGroup:S.age,warmth:S.scores.w,structure:S.scores.s})
     });
-    const data = await res.json();
-    console.log('subscribe response:', res.status, data);
-  }catch(e){console.warn('subscribe error:',e);}  
+  }catch(e){console.warn('subscribe error:',e);}
   st.textContent='';
   buildResults();
 });
