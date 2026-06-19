@@ -568,6 +568,12 @@
       font-size: 0.99rem; line-height: 1.85;
       color: var(--ink-soft); margin-bottom: 16px;
     }
+    .res-desc-para {
+      margin-bottom: 18px;
+    }
+    .res-desc-para:last-child {
+      margin-bottom: 0;
+    }
 
     .secondary {
       padding: 14px 18px;
@@ -819,7 +825,7 @@
       </div>
 
       <button id="btn-submit" class="btn btn-sage" style="margin-top:6px;">
-        <span>פתח/י את הפרופיל המלא</span>
+        <span>לקבלת הפרופיל המלא</span>
         <span class="arr">←</span>
       </button>
       <div id="status" class="status"></div>
@@ -887,7 +893,7 @@
 
       <div class="divider"><span>הפרופיל שלך</span></div>
 
-      <p class="res-desc" id="r-desc"></p>
+      <div class="res-desc" id="r-desc"></div>
       <div class="secondary" id="secondary"></div>
 
       <div class="cta">
@@ -1055,7 +1061,13 @@ function buildResults(){
   const{w,s}=S.scores, p=P[S.persona];
   $('r-name-display').innerHTML=p.nameHTML;
   $('r-style-display').textContent=p.baumrind;
-  $('r-desc').textContent=`${S.name}, `+(typeof p.description === 'string' ? p.description : t(p.description));
+  const descText = (typeof p.description === 'string' ? p.description : t(p.description));
+  const paragraphs = descText.split(/\n\n+/).map(s=>s.trim()).filter(Boolean);
+  const descHtml = paragraphs.map((para,i)=>{
+    const text = i===0 ? `${S.name}, ${para}` : para;
+    return `<p class="res-desc-para">${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</p>`;
+  }).join('');
+  $('r-desc').innerHTML = descHtml;
   $('bar-w').style.width=`${((w+10)/20)*100}%`;
   $('bar-s').style.width=`${((s+10)/20)*100}%`;
   $('val-w').textContent=w>0?`+${w}`:`${w}`;
