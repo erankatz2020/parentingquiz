@@ -12,25 +12,25 @@
   <style>
     /* ── TOKENS ─────────────────────────────── */
     :root {
-      --bg:          #EFF2ED;
-      --bg-2:        #E8EDE4;
-      --bg-3:        #DDE5D8;
-      --surface:     #F7F9F5;
+      --bg:          #F4EFE6;
+      --bg-2:        #ECE4D3;
+      --bg-3:        #E3D9C4;
+      --surface:     #FFFDF8;
       --surface-2:   #FFFFFF;
-      --sage:        #4A6B5E;
-      --sage-mid:    #5E7E72;
-      --sage-light:  #7A9B8E;
-      --sage-pale:   #C4D8D0;
-      --forest:      #2C3E30;
-      --forest-soft: #364A3A;
-      --gold:        #8A6F3A;
-      --gold-light:  #B8922A;
-      --ink:         #1E2820;
-      --ink-soft:    #3A4A3E;
-      --ink-mid:     #5A6B5E;
-      --ink-muted:   #8A9B8E;
-      --border:      rgba(74,107,94,0.18);
-      --border-mid:  rgba(74,107,94,0.28);
+      --sage:        #001F3F;
+      --sage-mid:    #12385A;
+      --sage-light:  #7A9B9E;
+      --sage-pale:   #E8D9A8;
+      --forest:      #001F3F;
+      --forest-soft: #1B3A54;
+      --gold:        #C7A12B;
+      --gold-light:  #D9B95A;
+      --ink:         #0D1B2A;
+      --ink-soft:    #1F3346;
+      --ink-mid:     #4C5C68;
+      --ink-muted:   #7A9B9E;
+      --border:      rgba(0,31,63,0.14);
+      --border-mid:  rgba(0,31,63,0.24);
 
       --font-display: 'Playfair Display', Georgia, serif;
       --font-body:    'Assistant', system-ui, sans-serif;
@@ -239,7 +239,7 @@
       position: absolute; top: -5px; left: 50%;
       transform: translateX(-50%);
       width: 10px; height: 10px;
-      background: var(--sage-mid);
+      background: var(--gold);
       border-radius: 50%;
       border: 2px solid var(--surface);
       pointer-events: none;
@@ -484,7 +484,7 @@
       color: var(--forest); line-height: 1.1;
       letter-spacing: -0.02em;
     }
-    .persona-name em { font-style: italic; color: var(--sage-mid); }
+    .persona-name em { font-style: italic; color: var(--gold); }
     .persona-style {
       font-size: 0.72rem; font-weight: 600;
       letter-spacing: 0.13em; text-transform: uppercase;
@@ -557,7 +557,7 @@
       transition: width 1.1s var(--ease) 0.35s;
     }
     .score-fill.w { background: linear-gradient(90deg, var(--sage-light), var(--sage)); }
-    .score-fill.s { background: linear-gradient(90deg, #8A9B5E, var(--forest)); }
+    .score-fill.s { background: linear-gradient(90deg, var(--gold-light), var(--forest)); }
     .score-val {
       font-family: var(--font-display);
       font-size: 0.85rem; font-weight: 700;
