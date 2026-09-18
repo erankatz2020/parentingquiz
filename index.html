@@ -403,6 +403,21 @@
       opacity: 0.7; letter-spacing: 0.03em;
     }
 
+    .answer-hint {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      margin-bottom: 10px;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translateX(-3px) translateX(-1px); }
+      20%, 80% { transform: translateX(-3px) translateX(2px); }
+      30%, 50%, 70% { transform: translateX(-3px) translateX(-4px); }
+      40%, 60% { transform: translateX(-3px) translateX(4px); }
+    }
+    .ans-btn.shake { animation: shake 0.4s var(--ease); }
+
     /* ── LOADING ────────────────────────────── */
     #screen-loading .card {
       text-align: center; padding: 64px 44px;
@@ -732,6 +747,7 @@
 
       <div class="answers" id="answers"></div>
 
+      <p class="answer-hint">בחרו את התשובה הכי קרובה למה שקורה אצלכם. אם שתיים מתאימות — אפשר לבחור שתיים.</p>
       <p class="kbd-hint">ניתן ללחוץ על מקשי A B C D בהתאם לתשובה, וללחוץ Enter להמשך</p>
 
       <div style="margin-top:18px;">
@@ -987,6 +1003,7 @@ function renderQ(){
   $('prog').style.width=`${(n/tot)*100}%`;
   $('situation-text').textContent=t(q.situation);
   $('next-label').textContent=n===tot?'סיימתי':'שאלה הבאה';
+  S.picks[S.idx]=[];
   $('btn-next').disabled=true;
   const grid=$('answers');
   grid.innerHTML='';
@@ -1000,9 +1017,23 @@ function renderQ(){
 }
 
 function pick(i){
-  document.querySelectorAll('.ans-btn').forEach((b,j)=>b.classList.toggle('selected',j===i));
-  S.picks[S.idx]=i;
-  $('btn-next').disabled=false;
+  const picks=S.picks[S.idx]||(S.picks[S.idx]=[]);
+  const pos=picks.indexOf(i);
+  if(pos>-1){
+    picks.splice(pos,1);
+  } else if(picks.length<2){
+    picks.push(i);
+  } else {
+    const btn=document.querySelector(`.ans-btn[data-i="${i}"]`);
+    if(btn){
+      btn.classList.remove('shake');
+      void btn.offsetWidth;
+      btn.classList.add('shake');
+    }
+    return;
+  }
+  document.querySelectorAll('.ans-btn').forEach((b,j)=>b.classList.toggle('selected',picks.includes(j)));
+  $('btn-next').disabled=picks.length===0;
 }
 
 document.addEventListener('keydown',e=>{
@@ -1015,9 +1046,13 @@ document.addEventListener('keydown',e=>{
 $('btn-next').addEventListener('click',next);
 
 function next(){
-  const a=S.questions[S.idx].answers[S.picks[S.idx]];
-  S.scores.w+=a.scores.warmth;
-  S.scores.s+=a.scores.structure;
+  const picks=S.picks[S.idx]||[];
+  const weight=picks.length===2?0.5:1;
+  picks.forEach(i=>{
+    const a=S.questions[S.idx].answers[i];
+    S.scores.w+=a.scores.warmth*weight;
+    S.scores.s+=a.scores.structure*weight;
+  });
   if(S.idx<S.questions.length-1){ S.idx++; renderQ(); }
   else{ show('screen-loading'); setTimeout(buildTeaser,2400); }
 }
