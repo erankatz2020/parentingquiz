@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>מוקאפ פלטת צבעים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Assistant', system-ui, sans-serif;
+    background: #ECECEC;
+    padding: 30px 16px 80px;
+  }
+  .page-title { text-align:center; font-size: 1.4rem; font-weight:700; margin-bottom: 6px; color:#222; }
+  .page-sub { text-align:center; color:#666; font-size: 0.95rem; margin-bottom: 36px; }
+
+  .section { max-width: 640px; margin: 0 auto 56px; }
+  .section-head {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 14px; padding: 0 4px;
+  }
+  .section-name { font-size: 1.15rem; font-weight: 700; color:#222; }
+  .section-desc { font-size: 0.85rem; color:#777; margin-top:2px; }
+  .swatches { display:flex; gap:6px; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }
+
+  /* ── shared quiz component structure (mirrors live site classes) ── */
+  .mock-app {
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 30px 10px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 34px 28px;
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  }
+  .lead {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.3rem; font-weight: 700; line-height:1.4;
+    color: var(--ink); margin-bottom: 16px; text-align:right;
+  }
+  .s-label { font-size: 1.02rem; font-weight:700; color: var(--ink); margin-bottom: 8px; }
+  .choice-hint { font-size: 0.92rem; color: var(--ink-mid); line-height:1.6; margin-bottom: 12px; }
+  .choice-group { margin-bottom: 22px; }
+  .choice-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .choice-btn {
+    border: 1.5px solid var(--border-mid);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 12px 6px;
+    text-align:center;
+    cursor:pointer;
+    transition: all .15s;
+  }
+  .choice-btn .c-main { display:block; color: var(--ink); font-size: 0.95rem; font-weight:600; }
+  .choice-btn .c-sub { display:block; font-size: 0.78rem; color: var(--ink-mid); margin-top:2px; }
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-pale);
+  }
+  .choice-btn.selected .c-main { color: var(--accent-ink); }
+
+  .consent-row {
+    display:flex; align-items:flex-start; gap:10px;
+    margin: 18px 0 16px; padding: 12px 14px;
+    background: var(--tint); border-radius:6px; border:1px solid var(--border);
+  }
+  .consent-checkbox { margin-top:3px; width:17px; height:17px; accent-color: var(--accent); flex-shrink:0; }
+  .consent-label { font-size: 0.86rem; color: var(--ink-mid); line-height:1.55; }
+  .consent-label a { color: var(--accent-ink); font-weight:600; }
+
+  .btn {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding: 13px; border:none; border-radius: 8px;
+    font-size: 0.98rem; font-weight:700; cursor:pointer;
+    background: var(--accent); color: var(--accent-text);
+  }
+  .note { text-align:center; font-size: 0.82rem; color: var(--ink-mid); margin-top:16px; line-height:1.5; }
+  .persona-tag {
+    display:inline-block; margin-top:14px; padding:5px 12px;
+    border-radius: 20px; font-size: 0.78rem; font-weight:700;
+    background: var(--tint); color: var(--accent-ink);
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-title">4 כיווני פלטת צבעים</div>
+  <div class="page-sub">אותו מסך, אותו תוכן — רק צבעי הבסיס משתנים</div>
+
+  <!-- 1. CURRENT -->
+  <div class="section" style="--bg:#EFF2ED; --surface:#F7F9F5; --ink:#1E2820; --ink-mid:#5A6B5E; --border:rgba(74,107,94,0.18); --border-mid:rgba(74,107,94,0.28); --accent:#4A6B5E; --accent-ink:#2C3E30; --accent-pale:#C4D8D0; --accent-text:#fff; --tint:rgba(74,107,94,0.08);">
+    <div class="section-head">
+      <div>
+        <div class="section-name">1. המצב הנוכחי (לצורך השוואה)</div>
+        <div class="section-desc">Sage ירוק-אפרפר, קריר ורגוע — אך עלול להרגיש קליני</div>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background:#4A6B5E"></div>
+        <div class="swatch" style="background:#2C3E30"></div>
+        <div class="swatch" style="background:#F7F9F5"></div>
+      </div>
+    </div>
+    <div class="mock-app">
+      <div class="card">
+        <div class="lead">בואו נגלה את סגנון ההורות שלכם</div>
+        <div class="choice-group">
+          <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+          <p class="choice-hint">בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.</p>
+          <div class="choice-grid">
+            <div class="choice-btn"><span class="c-main">3–6</span><span class="c-sub">גן וגיל הרך</span></div>
+            <div class="choice-btn selected"><span class="c-main">7–12</span><span class="c-sub">גיל בית הספר</span></div>
+            <div class="choice-btn"><span class="c-main">13–18</span><span class="c-sub">גיל ההתבגרות</span></div>
+          </div>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-checkbox" checked/>
+          <label class="consent-label">מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד. <a href="#">מדיניות הפרטיות</a>.</label>
+        </div>
+        <button class="btn">מתחילים ←</button>
+        <div class="note">שאלון הפרופיל ההורי נוצר על ידי ד"ר ערן כ"ץ, פסיכולוג קליני</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. YOUR BRAND -->
+  <div class="section" style="--bg:#F4EFE6; --surface:#FFFDF8; --ink:#001F3F; --ink-mid:#54626E; --border:rgba(0,31,63,0.14); --border-mid:rgba(0,31,63,0.24); --accent:#001F3F; --accent-ink:#8A6A16; --accent-pale:#EFE3BE; --accent-text:#F4EFE6; --tint:rgba(199,161,43,0.12);">
+    <div class="section-head">
+      <div>
+        <div class="section-name">2. הצבעים שלכם — Navy · Cream · Gold · Sage</div>
+        <div class="section-desc">קרם חם ברקע, נייבי לטקסט ולכפתור הראשי, זהב לדגשים ולבחירה</div>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background:#001F3F"></div>
+        <div class="swatch" style="background:#C7A12B"></div>
+        <div class="swatch" style="background:#F4EFE6"></div>
+        <div class="swatch" style="background:#7A9B9E"></div>
+      </div>
+    </div>
+    <div class="mock-app">
+      <div class="card">
+        <div class="lead">בואו נגלה את סגנון ההורות שלכם</div>
+        <div class="choice-group">
+          <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+          <p class="choice-hint">בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.</p>
+          <div class="choice-grid">
+            <div class="choice-btn"><span class="c-main">3–6</span><span class="c-sub">גן וגיל הרך</span></div>
+            <div class="choice-btn selected"><span class="c-main">7–12</span><span class="c-sub">גיל בית הספר</span></div>
+            <div class="choice-btn"><span class="c-main">13–18</span><span class="c-sub">גיל ההתבגרות</span></div>
+          </div>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-checkbox" checked/>
+          <label class="consent-label">מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד. <a href="#">מדיניות הפרטיות</a>.</label>
+        </div>
+        <button class="btn">מתחילים ←</button>
+        <div class="note">שאלון הפרופיל ההורי נוצר על ידי ד"ר ערן כ"ץ, פסיכולוג קליני</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OCEAN + WARM ACCENT -->
+  <div class="section" style="--bg:#EAF0EF; --surface:#F9FBFA; --ink:#12232B; --ink-mid:#516168; --border:rgba(28,74,94,0.16); --border-mid:rgba(28,74,94,0.26); --accent:#1C4A5E; --accent-ink:#B5654A; --accent-pale:#F0D9CC; --accent-text:#fff; --tint:rgba(197,122,78,0.10);">
+    <div class="section-head">
+      <div>
+        <div class="section-name">3. ניווט ואוקיינוס + חם טרה-קוטה</div>
+        <div class="section-desc">מתחבר ישירות למטאפורה של רב-חובל ומפת שיט; החום מגיע מהדגשים</div>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background:#1C4A5E"></div>
+        <div class="swatch" style="background:#C17A4E"></div>
+        <div class="swatch" style="background:#F9FBFA"></div>
+      </div>
+    </div>
+    <div class="mock-app">
+      <div class="card">
+        <div class="lead">בואו נגלה את סגנון ההורות שלכם</div>
+        <div class="choice-group">
+          <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+          <p class="choice-hint">בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.</p>
+          <div class="choice-grid">
+            <div class="choice-btn"><span class="c-main">3–6</span><span class="c-sub">גן וגיל הרך</span></div>
+            <div class="choice-btn selected"><span class="c-main">7–12</span><span class="c-sub">גיל בית הספר</span></div>
+            <div class="choice-btn"><span class="c-main">13–18</span><span class="c-sub">גיל ההתבגרות</span></div>
+          </div>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-checkbox" checked/>
+          <label class="consent-label">מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד. <a href="#">מדיניות הפרטיות</a>.</label>
+        </div>
+        <button class="btn">מתחילים ←</button>
+        <div class="note">שאלון הפרופיל ההורי נוצר על ידי ד"ר ערן כ"ץ, פסיכולוג קליני</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. WARM EARTH -->
+  <div class="section" style="--bg:#F3ECE4; --surface:#FCF9F5; --ink:#3A281E; --ink-mid:#7A6555; --border:rgba(181,101,74,0.20); --border-mid:rgba(181,101,74,0.30); --accent:#B5654A; --accent-ink:#5C4A32; --accent-pale:#E9D9C8; --accent-text:#fff; --tint:rgba(181,101,74,0.10);">
+    <div class="section-head">
+      <div>
+        <div class="section-name">4. אדמה חמה — טרה-קוטה + חום-ירוק כהה</div>
+        <div class="section-desc">אנושי, מחובר לקרקע; שינוי משמעותי יותר מהצבעוניות הנוכחית</div>
+      </div>
+      <div class="swatches">
+        <div class="swatch" style="background:#B5654A"></div>
+        <div class="swatch" style="background:#5C4A32"></div>
+        <div class="swatch" style="background:#FCF9F5"></div>
+      </div>
+    </div>
+    <div class="mock-app">
+      <div class="card">
+        <div class="lead">בואו נגלה את סגנון ההורות שלכם</div>
+        <div class="choice-group">
+          <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+          <p class="choice-hint">בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.</p>
+          <div class="choice-grid">
+            <div class="choice-btn"><span class="c-main">3–6</span><span class="c-sub">גן וגיל הרך</span></div>
+            <div class="choice-btn selected"><span class="c-main">7–12</span><span class="c-sub">גיל בית הספר</span></div>
+            <div class="choice-btn"><span class="c-main">13–18</span><span class="c-sub">גיל ההתבגרות</span></div>
+          </div>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-checkbox" checked/>
+          <label class="consent-label">מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד. <a href="#">מדיניות הפרטיות</a>.</label>
+        </div>
+        <button class="btn">מתחילים ←</button>
+        <div class="note">שאלון הפרופיל ההורי נוצר על ידי ד"ר ערן כ"ץ, פסיכולוג קליני</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

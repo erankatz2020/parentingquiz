@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>מוקאפ - ניגודיות וגודל טקסט</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #EFF2ED;
+    --surface: #F7F9F5;
+    --sage: #4A6B5E;
+    --sage-mid: #5E7E72;
+    --ink: #1E2820;
+    --ink-mid: #5A6B5E;
+    --ink-muted: #8A9B8E;
+    --border: rgba(74,107,94,0.18);
+  }
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Assistant', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 32px 20px;
+  }
+  h1 { font-size: 1.3rem; text-align:center; margin-bottom: 6px; }
+  .intro { text-align:center; color: var(--ink-mid); font-size: 0.95rem; margin-bottom: 28px; }
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto 40px;
+  }
+  @media (max-width: 700px) { .compare { grid-template-columns: 1fr; } }
+  .col-title {
+    text-align:center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    padding: 6px;
+    border-radius: 6px;
+  }
+  .col-title.current { background: rgba(180,60,60,0.12); color: #8a3a3a; }
+  .col-title.proposed { background: rgba(74,107,94,0.14); color: var(--sage); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 26px;
+  }
+  .s-label {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .choice-hint-current {
+    font-size: 0.84rem;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .choice-hint-proposed {
+    font-size: 0.98rem;
+    color: var(--ink-mid);
+    line-height: 1.65;
+    margin-bottom: 16px;
+  }
+  .tag {
+    display:inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-inline-start: 6px;
+    vertical-align: middle;
+  }
+  .tag.fail { background: rgba(180,60,60,0.15); color: #8a3a3a; }
+  .tag.pass { background: rgba(74,107,94,0.18); color: var(--sage); }
+
+  .consent-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 13px 16px;
+    background: rgba(74,107,94,0.06);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .consent-checkbox { margin-top: 3px; width: 18px; height: 18px; flex-shrink:0; accent-color: var(--sage-mid); }
+  .consent-label-current { font-size: 0.78rem; color: var(--ink-muted); line-height: 1.55; }
+  .consent-label-proposed { font-size: 0.92rem; color: var(--ink-mid); line-height: 1.6; }
+  .consent-label-current a, .consent-label-proposed a { color: var(--sage); }
+
+  .note {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+  .note b { color: var(--sage); }
+  .ratio { font-family: monospace; }
+</style>
+</head>
+<body>
+
+  <h1>לפני / אחרי — ניגודיות וגודל טקסט</h1>
+  <div class="intro">אותו טקסט, אותם צבעי הבסיס של האתר — רק שינוי בצבע ובגודל הטקסט המשני</div>
+
+  <div class="compare">
+    <div>
+      <div class="col-title current">מצב נוכחי</div>
+      <div class="card">
+        <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+        <p class="choice-hint-current">
+          בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.
+          <span class="tag fail">2.9:1 — כושל</span>
+        </p>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-checkbox"/>
+          <label class="consent-label-current">
+            מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד שאיננו כלי אבחוני. השאלון ותוצאותיו לא מהוות התערבות פסיכולוגית או אבחון רשמי, ואינם תחליף לטיפול או הדרכה מקצועיים.
+            <br/><a href="#">מדיניות הפרטיות</a>.
+            <span class="tag fail">2.9:1 — כושל</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-title proposed">מוצע</div>
+      <div class="card">
+        <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
+        <p class="choice-hint-proposed">
+          בחרו את הילד שאתם מתמודדים איתו כרגע וקבלו שאלות שמתאימות לקבוצת הגיל שלו.
+          <span class="tag pass">5.7:1 — תקין</span>
+        </p>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-checkbox"/>
+          <label class="consent-label-proposed">
+            מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד שאיננו כלי אבחוני. השאלון ותוצאותיו לא מהוות התערבות פסיכולוגית או אבחון רשמי, ואינם תחליף לטיפול או הדרכה מקצועיים.
+            <br/><a href="#">מדיניות הפרטיות</a>.
+            <span class="tag pass">5.7:1 — תקין</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>מה השתנה:</b><br/>
+    1. צבע הטקסט המשני עבר מ־<span class="ratio">#8A9B8E</span> (בהיר מדי, ניגודיות 2.9:1 מול הרקע) ל־<span class="ratio">#5A6B5E</span> (כבר קיים בפלטה שלכם, בשימוש במקומות אחרים באתר, ניגודיות 5.7:1 — עומד בתקן הנגישות הרגיל לטקסט).<br/><br/>
+    2. גודל הטקסט המשני גדל מ־0.84rem/0.78rem (כ־12.5–13.4px) ל־כ־0.92–0.98rem (כ־15–16px), כדי שלא תצטרכו להתאמץ או להתקרב למסך כדי לקרוא.<br/><br/>
+    שני השינויים משתמשים רק בצבעים שכבר קיימים אצלכם בקוד — לא נוספו צבעים חדשים לעיצוב.
+  </div>
+
+</body>
+</html>
