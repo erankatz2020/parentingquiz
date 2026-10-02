@@ -182,6 +182,36 @@
       color: var(--ink-soft);
     }
 
+    .how-to {
+      background: var(--sage-pale);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+    .how-to-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--forest);
+      margin: 0 0 6px;
+    }
+    .how-to-body {
+      font-size: 0.84rem;
+      color: var(--ink-soft);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .choice-note {
+      font-size: 0.88rem;
+      color: var(--ink-muted);
+      line-height: 1.7;
+      margin-bottom: 28px;
+      padding: 13px 16px;
+      background: rgba(74,107,94,0.06);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
     /* ── CHOICE GROUP ───────────────────────── */
     .choice-group { margin-bottom: 28px; }
     .choice-hint {
@@ -718,6 +748,13 @@
         מילוי השאלון לוקח כמה דקות ספורות ולא עולה כסף. מומלץ להתמקד בילד אחד בכל מילוי של השאלון (מי יודע, אולי תגלו שיש לכם סגנון שונה עם כל ילד).
       </p>
 
+      <div class="how-to">
+        <p class="how-to-title">איך זה עובד?</p>
+        <p class="how-to-body">עשר סיטואציות יומיומיות יוצגו בפניכם. בכל אחת הזיזו את שני הסליידרים למקום שמשקף את התגובה שלכם <strong>בדרך כלל</strong>. לאחר שתענו על עשר שאלות תקבלו את הפרופיל ההורי והסבר.</p>
+      </div>
+
+      <p class="choice-note">רוב ההורים לא מתנהגים בצורה קבועה כל הזמן. זה תלוי בסיטואציה, בילד שעליו מדובר, ובגורמים רבים אחרים כמו כמה ישנתם בלילה, כמה המצב האישי לחוץ וכן הלאה. לכן, השתדלו להזיז את הסליידרים למקום שמשקף את מה שקורה לכם ברוב המקרים.</p>
+
       <div class="choice-group">
         <div class="s-label">על איזה ילד/ה אנחנו מדברים?</div>
         <p class="choice-hint">
@@ -793,7 +830,6 @@
 
       <div class="sliders">
         <div class="slider-block">
-          <div class="slider-axis-label">גבולות</div>
           <div class="slider-endpoints" dir="ltr">
             <span class="slider-endpoint-label" id="b-low"></span>
             <span class="slider-endpoint-label" id="b-high"></span>
@@ -802,7 +838,6 @@
         </div>
 
         <div class="slider-block">
-          <div class="slider-axis-label">חיבור</div>
           <div class="slider-endpoints" dir="ltr">
             <span class="slider-endpoint-label" id="c-low"></span>
             <span class="slider-endpoint-label" id="c-high"></span>
