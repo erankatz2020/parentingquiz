@@ -167,6 +167,14 @@
       margin-bottom: 36px;
     }
 
+    .disclaimer-short {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 16px;
+    }
+
     /* ── DIVIDER ────────────────────────────── */
     .divider {
       display: flex; align-items: center; gap: 12px;
@@ -203,7 +211,7 @@
 
     .choice-note {
       font-size: 0.88rem;
-      color: var(--ink-muted);
+      color: var(--ink-soft);
       line-height: 1.7;
       margin-bottom: 28px;
       padding: 13px 16px;
@@ -724,6 +732,23 @@
       transition: color 0.15s;
     }
     .retake button:hover { color: var(--ink); }
+
+    .restart-top {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .restart-top button {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      background: none; border: none;
+      font-family: var(--font-body);
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .restart-top button:hover { color: var(--forest); }
   </style>
 </head>
 <body>
@@ -731,6 +756,7 @@
 
   <!-- ══ SCREEN 1: INTRO ══ -->
   <div id="screen-intro" class="screen active">
+    <div class="restart-top"><button class="restart-top-btn">התחלה מחדש</button></div>
     <div class="masthead">
       <div class="masthead-byline">ד"ר ערן כ"ץ · The Parenting MAP</div>
       <div class="masthead-title">הפרופיל <em>ההורי</em> שלי</div>
@@ -747,6 +773,8 @@
         <br/><br/>
         מילוי השאלון לוקח כמה דקות ספורות ולא עולה כסף. מומלץ להתמקד בילד אחד בכל מילוי של השאלון (מי יודע, אולי תגלו שיש לכם סגנון שונה עם כל ילד).
       </p>
+
+      <p class="disclaimer-short">שאלון זה הוא כלי חינוכי ללמידה עצמית בלבד ואינו מהווה אבחון פסיכולוגי רשמי.</p>
 
       <div class="how-to">
         <p class="how-to-title">איך זה עובד?</p>
@@ -812,6 +840,7 @@
 
   <!-- ══ SCREEN 2: QUIZ ══ -->
   <div id="screen-quiz" class="screen">
+    <div class="restart-top"><button class="restart-top-btn">התחלה מחדש</button></div>
     <div class="card">
       <div class="progress-wrap">
         <div class="progress-top">
@@ -857,6 +886,7 @@
 
   <!-- ══ SCREEN 3: LOADING ══ -->
   <div id="screen-loading" class="screen">
+    <div class="restart-top"><button class="restart-top-btn">התחלה מחדש</button></div>
     <div class="masthead">
       <div class="masthead-title">הפרופיל <em>ההורי</em> שלי</div>
     </div>
@@ -879,6 +909,7 @@
 
   <!-- ══ SCREEN 4: TEASER ══ -->
   <div id="screen-teaser" class="screen">
+    <div class="restart-top"><button class="restart-top-btn">התחלה מחדש</button></div>
     <div class="masthead">
       <div class="masthead-byline">הפרופיל ההורי שלך</div>
       <div class="masthead-title" style="font-size:clamp(1.8rem,5vw,2.5rem);">תוצאות <em>ראשוניות</em></div>
@@ -948,6 +979,7 @@
 
   <!-- ══ SCREEN 5: FULL RESULTS ══ -->
   <div id="screen-results" class="screen">
+    <div class="restart-top"><button class="restart-top-btn">התחלה מחדש</button></div>
     <div class="masthead">
       <div class="masthead-byline">הפרופיל ההורי שלך · תוצאות מלאות</div>
       <div class="masthead-title" style="font-size:clamp(1.9rem,5.5vw,2.7rem);" id="r-name-display"></div>
@@ -1097,10 +1129,10 @@ function renderQ(){
   $('prog').style.width=`${(n/tot)*100}%`;
   $('situation-text').textContent=t(q.situation);
   $('next-label').textContent=n===tot?'סיימתי':'שאלה הבאה';
-  $('b-low').textContent=q.boundaries.low;
-  $('b-high').textContent=q.boundaries.high;
-  $('c-low').textContent=q.connection.low;
-  $('c-high').textContent=q.connection.high;
+  $('b-low').textContent=t(q.boundaries.low);
+  $('b-high').textContent=t(q.boundaries.high);
+  $('c-low').textContent=t(q.connection.low);
+  $('c-high').textContent=t(q.connection.high);
   $('slider-boundaries').value=50;
   $('slider-connection').value=50;
 }
@@ -1193,7 +1225,7 @@ function buildResults(){
 }
 
 // Retake
-$('btn-retake').addEventListener('click',()=>{
+function resetQuiz(){
   Object.assign(S,{age:null,gender:null,questions:[],idx:0,rawScores:[],scores:{w:0,s:0},persona:null,secondary:null,name:'',email:''});
   document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
   $('btn-start').disabled=true;
@@ -1201,7 +1233,10 @@ $('btn-retake').addEventListener('click',()=>{
   $('status').textContent='';
   $('btn-submit').disabled=false;
   show('screen-intro');
-});
+}
+
+$('btn-retake').addEventListener('click',resetQuiz);
+document.querySelectorAll('.restart-top-btn').forEach(b=>b.addEventListener('click',resetQuiz));
 </script>
 </body>
 </html>
