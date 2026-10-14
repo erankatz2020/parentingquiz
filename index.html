@@ -1139,10 +1139,10 @@ $('btn-submit').addEventListener('click',async()=>{
   st.textContent='שולח...';
   $('btn-submit').disabled=true;
   try{
-    await fetch('/.netlify/functions/subscribe',{
+    await fetch('https://webhooks.integrately.com/a/webhooks/0dbbf34454264af387b1af5ef7874561',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,email,persona:S.persona,ageGroup:S.age,warmth:S.scores.w,structure:S.scores.s})
+      body:JSON.stringify({name:name,email:email,persona:S.persona,ageGroup:S.age})
     });
   }catch(e){console.warn('subscribe error:',e);}
   st.textContent='';
