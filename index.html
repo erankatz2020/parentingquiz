@@ -167,6 +167,14 @@
       margin-bottom: 36px;
     }
 
+    .disclaimer-short {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 16px;
+    }
+
     /* ── DIVIDER ────────────────────────────── */
     .divider {
       display: flex; align-items: center; gap: 12px;
@@ -677,19 +685,29 @@
     .cta-btn .arr { transition: transform 0.2s; }
     .cta-btn:hover .arr { transform: translateX(-4px); }
 
-    .retake {
-      text-align: center; margin-top: 28px;
+    .btn-restart-wrap {
+      text-align: center;
+      margin-top: 24px;
     }
-    .retake button {
-      font-size: 1rem; color: var(--forest);
-      cursor: pointer; text-decoration: underline;
-      text-underline-offset: 4px;
-      background: none; border: none;
+    .btn-restart {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 11px 24px;
+      background: var(--surface-2);
+      color: var(--forest);
+      border: 1.5px solid var(--border-mid);
+      border-radius: 8px;
       font-family: var(--font-body);
-      font-weight: 600;
-      transition: color 0.15s;
+      font-size: 0.88rem; font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      -webkit-tap-highlight-color: transparent;
     }
-    .retake button:hover { color: var(--ink); }
+    .btn-restart:hover {
+      border-color: var(--forest);
+      background: var(--bg);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
@@ -713,6 +731,8 @@
         <br/><br/>
         מילוי השאלון לוקח כמה דקות ספורות ולא עולה כסף. מומלץ להתמקד בילד אחד בכל מילוי של השאלון (מי יודע, אולי תגלו שיש לכם סגנון שונה עם כל ילד).
       </p>
+
+      <p class="disclaimer-short">שאלון זה הוא כלי חינוכי ללמידה עצמית בלבד ואינו מהווה אבחון פסיכולוגי רשמי.</p>
 
       <div class="how-to">
         <p class="how-to-title">איך זה עובד?</p>
@@ -807,6 +827,8 @@
           <span class="arr">←</span>
         </button>
       </div>
+
+      <div class="btn-restart-wrap"><button class="btn-restart">התחלה מחדש</button></div>
     </div>
   </div>
 
@@ -829,6 +851,8 @@
       </div>
       <div class="loading-title">מחשב את הפרופיל שלך<span class="dots"></span></div>
       <div class="loading-sub">מנתח 10 תגובות ומאתר את סגנון ההורות שלך</div>
+
+      <div class="btn-restart-wrap"><button class="btn-restart">התחלה מחדש</button></div>
     </div>
   </div>
 
@@ -899,6 +923,8 @@
       </button>
       <div id="status" class="status"></div>
       <p class="privacy">בהזנת הפרטים ובקשת הפרופיל המלא אתם מסכימים לקבל עדכונים במייל מד"ר ערן כ"ץ ומפת ההורות. הפרטים שלכם מוגנים ולא יועברו לצד שלישי. ניתן להסיר את עצמכם מרשימת התפוצה בכל עת.</p>
+
+      <div class="btn-restart-wrap"><button class="btn-restart">התחלה מחדש</button></div>
     </div>
   </div>
 
@@ -979,9 +1005,7 @@
         </a>
       </div>
 
-      <div class="retake">
-        <button id="btn-retake">רוצה לענות שוב על ילד אחר? לחץ כאן להתחלה מחדש</button>
-      </div>
+      <div class="btn-restart-wrap"><button class="btn-restart">התחלה מחדש</button></div>
     </div>
   </div>
 
@@ -1178,7 +1202,7 @@ function buildResults(){
 }
 
 // Retake
-$('btn-retake').addEventListener('click',()=>{
+function resetQuiz(){
   Object.assign(S,{age:null,gender:null,questions:[],idx:0,picks:[],scores:{w:0,s:0},persona:null,secondary:null,name:'',email:''});
   document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked=false;
@@ -1187,7 +1211,9 @@ $('btn-retake').addEventListener('click',()=>{
   $('status').textContent='';
   $('btn-submit').disabled=false;
   show('screen-intro');
-});
+}
+
+document.querySelectorAll('.btn-restart').forEach(b=>b.addEventListener('click',resetQuiz));
 </script>
 </body>
 </html>
