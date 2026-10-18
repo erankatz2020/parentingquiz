@@ -827,8 +827,6 @@
       <div class="note">
         שאלון הפרופיל ההורי מוגש לכם ונוצר על ידי ד"ר ערן כ"ץ, פסיכולוג קליני ויוצר "מפת ההורות".
       </div>
-
-      <div class="btn-restart-wrap"><button class="btn-restart">התחלה מחדש</button></div>
     </div>
   </div>
 
@@ -1222,6 +1220,7 @@ function buildResults(){
 function resetQuiz(){
   Object.assign(S,{age:null,gender:null,questions:[],idx:0,rawScores:[],scores:{w:0,s:0},persona:null,secondary:null,name:'',email:''});
   document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  $('chk-consent').checked=false;
   $('btn-start').disabled=true;
   $('inp-name').value=''; $('inp-email').value='';
   $('status').textContent='';

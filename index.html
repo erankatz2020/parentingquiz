@@ -1181,6 +1181,7 @@ function buildResults(){
 $('btn-retake').addEventListener('click',()=>{
   Object.assign(S,{age:null,gender:null,questions:[],idx:0,picks:[],scores:{w:0,s:0},persona:null,secondary:null,name:'',email:''});
   document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  $('chk-consent').checked=false;
   $('btn-start').disabled=true;
   $('inp-name').value=''; $('inp-email').value='';
   $('status').textContent='';
