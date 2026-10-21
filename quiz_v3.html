@@ -445,7 +445,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
       </div>
 
       <div class="consent-row">
-        <input type="checkbox" id="chk-consent"/>
+        <input type="checkbox" id="chk-consent" autocomplete="off"/>
         <label for="chk-consent">זה כלי ללמידה עצמית, לא אבחון. <button type="button" class="link-btn" id="link-consent-more">עוד פרטים</button></label>
       </div>
 
@@ -836,6 +836,11 @@ $('link-about').addEventListener('click', ()=>openSheet('על מה זה מבוס
 $('link-disclaimer-teaser').addEventListener('click', ()=>openSheet('הבהרה', DISCLAIMER_HTML));
 
 /* ── Screen 1: Start ── */
+// Some browsers restore form field state (including checkboxes) across a
+// page reload, independent of the HTML default. Force it off on every
+// load/reload so consent is never silently carried over.
+$('chk-consent').checked = false;
+
 function updateStartBtn(){
   $('btn-start').disabled = !(S.age && S.gender && $('chk-consent').checked);
 }

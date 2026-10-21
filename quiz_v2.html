@@ -812,7 +812,7 @@
       </div>
 
       <div class="consent-row">
-        <input type="checkbox" id="chk-consent" class="consent-checkbox"/>
+        <input type="checkbox" id="chk-consent" class="consent-checkbox" autocomplete="off"/>
         <label for="chk-consent" class="consent-label">
           מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד שאיננו כלי אבחוני. השאלון ותוצאותיו לא מהוות התערבות פסיכולוגית או אבחון רשמי, ואינם תחליף לטיפול או הדרכה מקצועיים. המטרה היא לעזור לכם לחשוב על דפוסי ההורות שלכם כדי שתוכלו להגשים את המשאלות שלכם כהורים.
           לפרטים נוספים ראו את <a href="https://www.theparentingmap.com/privacy-policy/" target="_blank" rel="noopener">מדיניות הפרטיות</a>.
@@ -1096,6 +1096,11 @@ function toSVG(v){ return 40+((v+10)/20)*320; }
 function toSVGx(v){ return toSVG(v); } // SVG is LTR, no flip needed
 
 // Screen 1
+// Some browsers restore form field state (including checkboxes) across a
+// page reload, independent of the HTML default. Force it off on every
+// load/reload so consent is never silently carried over.
+$('chk-consent').checked=false;
+
 function updateStartBtn(){
   $('btn-start').disabled=!(S.age&&S.gender&&$('chk-consent').checked);
 }
