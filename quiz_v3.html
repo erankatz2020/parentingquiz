@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>איזה הורה אני בעצם? — המסע ההורי</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<style>
+:root{
+  --sand:#F6EFE4;
+  --sea:#1F6F78;
+  --sea-dark:#15545C;
+  --sea-light:#CFE3E1;
+  --coral:#E8735A;
+  --coral-light:#F7D6CC;
+  --navy:#1D2B3A;
+  --ink-soft:#3C4A56;
+  --card:#FFFFFF;
+  --border:rgba(29,43,58,0.1);
+  --font-display:'Playfair Display', Georgia, serif;
+  --font-body:'Assistant', system-ui, sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{
+  font-family:var(--font-body);
+  background:var(--sand);
+  color:var(--navy);
+  direction:rtl;
+  min-height:100vh;
+  font-style:normal;
+}
+em,i{font-style:normal;}
+
+#app{
+  max-width:420px;
+  margin:0 auto;
+  min-height:100vh;
+  position:relative;
+  padding-bottom:96px;
+}
+
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .4s var(--ease);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+.pad{padding:20px 18px;}
+
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 2px 10px rgba(29,43,58,0.07);
+}
+
+h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
+
+.headline{font-size:1.9rem;line-height:1.2;text-align:center;margin:18px 0 6px;}
+.tagline{font-size:1rem;color:var(--sea);text-align:center;font-weight:700;margin-bottom:24px;}
+
+/* ── chips ── */
+.chip-label{font-size:.82rem;font-weight:700;color:var(--ink-soft);margin:18px 0 8px;}
+.chip-row{display:flex;gap:8px;}
+.chip{
+  flex:1;
+  min-height:44px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--card);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  font-weight:700;font-size:.95rem;
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:all .18s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.chip:active{transform:scale(0.97);}
+.chip.selected{
+  background:var(--sea);
+  border-color:var(--sea);
+  color:#fff;
+}
+
+/* ── consent row ── */
+.consent-row{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:22px 0 4px;
+}
+.consent-row input[type=checkbox]{
+  width:22px;height:22px;flex-shrink:0;margin-top:2px;
+  accent-color:var(--sea);
+}
+.consent-row label{font-size:.88rem;line-height:1.5;color:var(--ink-soft);}
+.link-btn{
+  background:none;border:none;color:var(--sea);
+  font-family:var(--font-body);font-size:inherit;font-weight:700;
+  text-decoration:underline;text-underline-offset:3px;
+  cursor:pointer;padding:0;
+}
+
+.small-link-row{text-align:center;margin-top:14px;}
+
+.sig{
+  text-align:center;font-size:.78rem;color:var(--ink-soft);
+  margin-top:14px;opacity:.75;
+}
+
+/* ── pinned button ── */
+.pinned-wrap{
+  position:fixed;
+  bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:420px;
+  padding:12px 18px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(0deg, var(--sand) 60%, rgba(246,239,228,0));
+  z-index:30;
+}
+.btn-main{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:52px;
+  background:var(--coral);
+  color:#fff;
+  border:none;border-radius:16px;
+  font-family:var(--font-body);font-size:1.02rem;font-weight:800;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(232,115,90,0.35);
+  transition:all .18s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-main:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.btn-main:active:not(:disabled){transform:scale(0.98);}
+
+.btn-ghost{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:44px;padding:0 18px;
+  background:var(--card);
+  color:var(--sea);
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  font-family:var(--font-body);font-size:.92rem;font-weight:700;
+  cursor:pointer;
+  transition:all .18s var(--ease);
+}
+.btn-ghost:active{transform:scale(0.97);}
+
+/* ── bottom sheet ── */
+.sheet-backdrop{
+  position:fixed;inset:0;background:rgba(29,43,58,0.5);
+  opacity:0;pointer-events:none;transition:opacity .25s var(--ease);
+  z-index:90;
+}
+.sheet-backdrop.open{opacity:1;pointer-events:auto;}
+.sheet{
+  position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);
+  width:100%;max-width:420px;
+  max-height:80vh;overflow-y:auto;
+  background:var(--card);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px calc(24px + env(safe-area-inset-bottom));
+  transition:transform .3s var(--ease);
+  z-index:91;
+}
+.sheet.open{transform:translate(-50%,0);}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sheet-title{font-family:var(--font-display);font-weight:900;font-size:1.1rem;color:var(--navy);}
+.sheet-close{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--sand);border:none;
+  font-size:1.1rem;color:var(--navy);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.sheet-body{font-size:.9rem;line-height:1.75;color:var(--ink-soft);}
+.sheet-body p{margin-bottom:12px;}
+.sheet-body p:last-child{margin-bottom:0;}
+
+/* ── question screen ── */
+.q-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 4px;
+}
+.q-count{font-size:.85rem;font-weight:700;color:var(--ink-soft);}
+.q-back{
+  background:none;border:none;
+  color:var(--sea);font-family:var(--font-body);
+  font-size:.85rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:4px;
+  padding:6px 2px;visibility:hidden;
+}
+.q-back.show{visibility:visible;}
+
+.route-wrap{padding:6px 18px 10px;}
+.route-svg{width:100%;height:46px;display:block;}
+
+.situation-card{
+  background:var(--sea);
+  color:#fff;
+  border-radius:16px;
+  padding:18px 18px;
+  margin:4px 18px 16px;
+  font-size:.98rem;line-height:1.65;
+}
+
+.sliders{padding:0 18px;display:flex;flex-direction:column;gap:16px;}
+.slider-card{
+  background:var(--card);
+  border-radius:14px;
+  padding:16px 14px 20px;
+  box-shadow:0 1px 6px rgba(29,43,58,0.06);
+}
+.slider-endpoints{
+  display:flex;justify-content:space-between;gap:10px;
+  margin-bottom:18px;
+}
+.slider-endpoints span{
+  flex:1;font-size:.84rem;line-height:1.45;color:var(--ink-soft);text-align:center;
+}
+.slider-track-wrap{position:relative;height:34px;}
+.slider-track-wrap input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  background:transparent;margin:0;
+  direction:ltr;
+  cursor:pointer;
+}
+.slider-track-wrap input[type=range]::-webkit-slider-runnable-track{
+  height:8px;border-radius:99px;margin-top:13px;
+}
+.slider-track-wrap input[type=range]::-moz-range-track{
+  height:8px;border-radius:99px;
+}
+.slider-track-wrap.boundaries input[type=range]::-webkit-slider-runnable-track{
+  background:linear-gradient(90deg, var(--sea-light), var(--sea));
+}
+.slider-track-wrap.boundaries input[type=range]::-moz-range-track{
+  background:linear-gradient(90deg, var(--sea-light), var(--sea));
+}
+.slider-track-wrap.connection input[type=range]::-webkit-slider-runnable-track{
+  background:linear-gradient(90deg, var(--coral-light), var(--coral));
+}
+.slider-track-wrap.connection input[type=range]::-moz-range-track{
+  background:linear-gradient(90deg, var(--coral-light), var(--coral));
+}
+.slider-track-wrap input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:34px;height:30px;background:transparent;border:none;
+  margin-top:-8px;
+}
+.slider-track-wrap input[type=range]::-moz-range-thumb{
+  width:34px;height:30px;background:transparent;border:none;
+}
+.slider-thumb-svg{
+  position:absolute;top:50%;
+  width:34px;height:30px;
+  transform:translate(50%,-50%);
+  pointer-events:none;
+  filter:drop-shadow(0 2px 4px rgba(29,43,58,0.3));
+}
+
+/* ── loading ── */
+.loading-wrap{padding:60px 24px;text-align:center;}
+.loading-svg{width:100%;max-width:300px;height:140px;margin:0 auto 24px;}
+.loading-text{font-size:1.05rem;font-weight:700;color:var(--sea);}
+
+/* ── teaser / results ── */
+.center{text-align:center;}
+.lead-line{font-size:.92rem;color:var(--ink-soft);text-align:center;margin:18px 0 10px;}
+.compass-wrap{width:200px;height:200px;margin:10px auto 18px;position:relative;}
+.compass-svg{width:100%;height:100%;}
+.persona-card{
+  display:none;
+  background:var(--card);
+  border:2px solid var(--coral);
+  border-radius:18px;
+  padding:24px 20px;
+  margin:0 18px 18px;
+  text-align:center;
+}
+.persona-card.show{display:block;animation:fadeUp .5s var(--ease);}
+.persona-name{font-family:var(--font-display);font-weight:900;font-size:1.5rem;color:var(--navy);line-height:1.15;}
+.persona-name em{color:var(--coral);}
+.persona-style{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);margin-top:5px;}
+
+.strength-rows{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
+.strength-row{display:flex;align-items:center;gap:10px;justify-content:center;}
+.strength-lbl{font-size:.8rem;font-weight:700;color:var(--ink-soft);width:48px;text-align:left;}
+.dots{display:flex;gap:5px;}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--border);}
+.dot.filled.w{background:var(--coral);}
+.dot.filled.s{background:var(--sea);}
+
+.teaser-text{font-size:.94rem;line-height:1.75;color:var(--ink-soft);text-align:right;margin-top:14px;}
+
+.gate-card{margin:0 18px 18px;}
+.gate-title{font-family:var(--font-display);font-weight:900;font-size:1.1rem;color:var(--navy);text-align:center;margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.76rem;font-weight:700;color:var(--ink-soft);margin-bottom:5px;}
+.field input{
+  width:100%;padding:13px 14px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-family:var(--font-body);font-size:1rem;color:var(--navy);
+  direction:ltr;text-align:left;
+  background:var(--sand);
+}
+.field input:focus{outline:none;border-color:var(--sea);}
+.consent-line{font-size:.78rem;color:var(--ink-soft);line-height:1.55;margin:10px 0 2px;}
+.status-line{text-align:center;font-size:.82rem;color:var(--ink-soft);min-height:18px;margin-top:6px;}
+
+.chart-wrap{width:100%;max-width:300px;margin:0 auto 10px;position:relative;}
+.chart-svg{width:100%;aspect-ratio:1;display:block;border-radius:14px;overflow:hidden;}
+.chart-overlay{
+  position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  padding:10px;pointer-events:none;direction:ltr;
+}
+.chart-qlabel{
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:.68rem;font-weight:700;color:rgba(255,255,255,0.85);line-height:1.25;
+  text-shadow:0 1px 2px rgba(0,0,0,0.35);
+}
+
+.res-desc{font-size:.95rem;line-height:1.8;color:var(--ink-soft);margin:14px 18px;}
+.res-desc p{margin-bottom:14px;}
+.res-desc p:last-child{margin-bottom:0;}
+
+.share-row{text-align:center;margin:14px 18px;}
+
+.cta-block{
+  margin:18px 18px 10px;
+  background:var(--navy);
+  border-radius:16px;
+  padding:22px 18px;
+}
+.cta-item{margin-bottom:18px;}
+.cta-item:last-child{margin-bottom:0;}
+.cta-body{font-size:.86rem;line-height:1.6;color:rgba(255,255,255,0.75);margin-bottom:10px;}
+.cta-link{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:46px;
+  background:var(--coral);color:#fff;
+  border-radius:12px;text-decoration:none;
+  font-size:.92rem;font-weight:700;
+}
+
+.retake-row{text-align:center;margin:20px 18px 12px;}
+.retake-row button{
+  background:none;border:none;color:var(--sea);
+  font-family:var(--font-body);font-size:.9rem;font-weight:700;
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer;
+}
+
+.toast{
+  position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+  background:var(--navy);color:#fff;
+  padding:10px 20px;border-radius:99px;
+  font-size:.85rem;font-weight:700;
+  opacity:0;pointer-events:none;
+  transition:all .25s var(--ease);
+  z-index:95;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SCREEN 1: START ══ -->
+  <div id="screen-start" class="screen active">
+    <div class="pad">
+      <svg class="loading-svg" style="height:120px;margin-bottom:0;" viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,100 Q37,90 75,100 T150,100 T225,100 T300,100" stroke="var(--sea-light)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M0,112 Q37,104 75,112 T150,112 T225,112 T300,112" stroke="var(--sea-light)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6"/>
+        <g transform="translate(150,78)">
+          <path d="M-22,24 Q0,34 22,24 L17,30 Q0,36 -17,30 Z" fill="var(--navy)"/>
+          <line x1="0" y1="-30" x2="0" y2="24" stroke="var(--navy)" stroke-width="2.5"/>
+          <path d="M1,-28 L1,16 L24,6 Z" fill="var(--coral)"/>
+          <path d="M-1,-18 L-1,16 L-19,8 Z" fill="#fff" stroke="var(--sea)" stroke-width="1"/>
+        </g>
+      </svg>
+
+      <h1 class="headline">איזה הורה אני בעצם?</h1>
+      <div class="tagline">גלו את סגנון ההורות שלכם</div>
+
+      <div class="chip-label">באיזה גיל הילד/ה?</div>
+      <div class="chip-row">
+        <button class="chip" data-group="age" data-value="toddlers">3-6</button>
+        <button class="chip" data-group="age" data-value="school">7-12</button>
+        <button class="chip" data-group="age" data-value="teens">13-18</button>
+      </div>
+
+      <div class="chip-label">איך לפנות אליך?</div>
+      <div class="chip-row">
+        <button class="chip" data-group="gender" data-value="m">אבא</button>
+        <button class="chip" data-group="gender" data-value="f">אמא</button>
+        <button class="chip" data-group="gender" data-value="n">הורה</button>
+      </div>
+
+      <div class="consent-row">
+        <input type="checkbox" id="chk-consent"/>
+        <label for="chk-consent">זה כלי ללמידה עצמית, לא אבחון. <button type="button" class="link-btn" id="link-consent-more">עוד פרטים</button></label>
+      </div>
+
+      <div class="small-link-row">
+        <button type="button" class="link-btn" id="link-about">על מה זה מבוסס?</button>
+      </div>
+
+      <div class="sig">נוצר על ידי ד"ר ערן כ"ץ, יוצר מפת ההורות</div>
+    </div>
+
+    <div class="pinned-wrap">
+      <button id="btn-start" class="btn-main" disabled>
+        <span>יוצאים לדרך</span><span>⛵</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: QUESTION ══ -->
+  <div id="screen-quiz" class="screen">
+    <div class="q-top">
+      <span class="q-count" id="q-count">רגע 1 מתוך 10</span>
+      <button class="q-back" id="btn-back"><span>←</span><span>לחזור אחורה</span></button>
+    </div>
+
+    <div class="route-wrap">
+      <svg class="route-svg" id="route-svg" viewBox="0 0 380 46" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="situation-card" id="situation-text"></div>
+
+    <div class="sliders">
+      <div class="slider-card">
+        <div class="slider-endpoints">
+          <span id="b-low"></span>
+          <span id="b-high"></span>
+        </div>
+        <div class="slider-track-wrap boundaries">
+          <input type="range" id="slider-boundaries" min="0" max="100" step="1" value="50"/>
+          <svg class="slider-thumb-svg" id="thumb-boundaries" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+      <div class="slider-card">
+        <div class="slider-endpoints">
+          <span id="c-low"></span>
+          <span id="c-high"></span>
+        </div>
+        <div class="slider-track-wrap connection">
+          <input type="range" id="slider-connection" min="0" max="100" step="1" value="50"/>
+          <svg class="slider-thumb-svg" id="thumb-connection" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:14px;"></div>
+
+    <div class="pinned-wrap">
+      <button id="btn-next" class="btn-main">
+        <span id="next-label">ממשיכים להפליג</span><span>←</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 3: LOADING ══ -->
+  <div id="screen-loading" class="screen">
+    <div class="loading-wrap">
+      <svg class="loading-svg" id="loading-svg" viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10,110 Q80,95 150,108 T290,100" stroke="var(--sea-light)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <g transform="translate(255,90)">
+          <ellipse cx="0" cy="18" rx="26" ry="10" fill="#E3D6B8"/>
+          <circle cx="-6" cy="4" r="14" fill="var(--sea)"/>
+          <circle cx="8" cy="-2" r="10" fill="var(--sea-dark)"/>
+        </g>
+        <g id="loading-boat" transform="translate(20,96)">
+          <path d="M-16,16 Q0,24 16,16 L12,21 Q0,26 -12,21 Z" fill="var(--navy)"/>
+          <line x1="0" y1="-22" x2="0" y2="16" stroke="var(--navy)" stroke-width="2"/>
+          <path d="M1,-20 L1,12 L17,4 Z" fill="var(--coral)"/>
+          <path d="M-1,-13 L-1,12 L-14,6 Z" fill="#fff" stroke="var(--sea)" stroke-width="1"/>
+        </g>
+      </svg>
+      <div class="loading-text">מנווטים אל התוצאה<span id="loading-dots"></span></div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 4: TEASER ══ -->
+  <div id="screen-teaser" class="screen">
+    <div class="pad" style="padding-bottom:0;">
+      <div class="lead-line">המצפן שלך הצביע על...</div>
+      <div class="compass-wrap">
+        <svg class="compass-svg" id="compass-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="92" fill="#fff" stroke="var(--sea)" stroke-width="4"/>
+          <circle cx="100" cy="100" r="76" fill="none" stroke="var(--border)" stroke-width="1"/>
+          <g id="compass-needle" transform="translate(100,100)">
+            <polygon points="0,-62 12,0 0,16 -12,0" fill="var(--coral)"/>
+            <polygon points="62,0 0,12 0,-12 -62,0" fill="var(--sea)" opacity="0.85"/>
+          </g>
+          <circle cx="100" cy="100" r="9" fill="var(--navy)"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="persona-card" id="teaser-persona-card">
+      <div class="persona-name" id="t-name"></div>
+      <div class="persona-style" id="t-style"></div>
+      <div class="strength-rows">
+        <div class="strength-row">
+          <span class="strength-lbl">חום</span>
+          <div class="dots" id="dots-w"></div>
+        </div>
+        <div class="strength-row">
+          <span class="strength-lbl">גבולות</span>
+          <div class="dots" id="dots-s"></div>
+        </div>
+      </div>
+      <p class="teaser-text" id="t-desc"></p>
+    </div>
+
+    <div class="gate-card card" style="margin:0 18px 18px;">
+      <div class="gate-title">קבלו את הפרופיל המלא למייל</div>
+      <div class="field">
+        <label for="inp-name">שם פרטי</label>
+        <input type="text" id="inp-name" placeholder="שם פרטי" autocomplete="given-name"/>
+      </div>
+      <div class="field">
+        <label for="inp-email">אימייל</label>
+        <input type="email" id="inp-email" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <p class="consent-line">בהרשמה אתם מסכימים לקבל מיילים מד"ר ערן כ"ץ ומפת ההורות. אפשר להסיר בכל עת. <button type="button" class="link-btn" id="link-disclaimer-teaser">הבהרה</button></p>
+      <div class="status-line" id="status"></div>
+    </div>
+
+    <div class="pinned-wrap">
+      <button id="btn-submit" class="btn-main">
+        <span>לפרופיל המלא</span><span>←</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 5: RESULTS ══ -->
+  <div id="screen-results" class="screen">
+    <div class="pad" style="padding-bottom:0;">
+      <h2 class="headline" style="font-size:1.4rem;" id="r-name-display"></h2>
+      <div class="persona-style center" id="r-style-display" style="margin-bottom:10px;"></div>
+    </div>
+
+    <div class="persona-card show" id="results-persona-card">
+      <div class="persona-name" id="r-name2"></div>
+      <div class="persona-style" id="r-style2"></div>
+      <div class="strength-rows">
+        <div class="strength-row">
+          <span class="strength-lbl">חום</span>
+          <div class="dots" id="r-dots-w"></div>
+        </div>
+        <div class="strength-row">
+          <span class="strength-lbl">גבולות</span>
+          <div class="dots" id="r-dots-s"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="share-row">
+      <button class="btn-ghost" id="btn-share">שתפו את הכרטיס ⛵</button>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-outer">
+        <svg class="chart-svg" id="chart-full" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0"   y="0"   width="200" height="200" fill="var(--sea-dark)"/>
+          <rect x="200" y="0"   width="200" height="200" fill="var(--sea)"/>
+          <rect x="0"   y="200" width="200" height="200" fill="#8A95A0"/>
+          <rect x="200" y="200" width="200" height="200" fill="var(--coral)"/>
+          <line x1="200" y1="0" x2="200" y2="400" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+          <line x1="0" y1="200" x2="400" y2="200" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+          <g id="ship-f" transform="translate(200,200)">
+            <circle r="16" fill="#fff" opacity="0.95"/>
+            <circle r="16" fill="none" stroke="var(--navy)" stroke-width="1.5"/>
+            <text x="0" y="5" text-anchor="middle" font-size="16">⛵</text>
+          </g>
+        </svg>
+      </div>
+      <div class="chart-overlay">
+        <div class="chart-qlabel">הקצין<br/>הנוקשה</div>
+        <div class="chart-qlabel">רב-חובל<br/>מנווט</div>
+        <div class="chart-qlabel">הספן<br/>האבוד</div>
+        <div class="chart-qlabel">הספן<br/>החברמן</div>
+      </div>
+    </div>
+
+    <div class="res-desc" id="r-desc"></div>
+    <div class="res-desc" id="secondary"></div>
+
+    <div class="cta-block">
+      <div class="cta-item">
+        <p class="cta-body">שיחת ניווט הורי של 90 דקות עם ד"ר ערן כ"ץ, לחשוב ביחד על הדפוסים שלכם ולבנות כלים אמיתיים.</p>
+        <a href="https://www.theparentingmap.com/navigate" class="cta-link" target="_blank">לפרטים ותיאום שיחה ←</a>
+      </div>
+      <div class="cta-item">
+        <p class="cta-body">רוצים ללמוד בקצב שלכם? קורס מפת ההורות מלמד את הכלים המרכזיים לסגנון הורות מיטיב.</p>
+        <a href="https://www.theparentingmap.com/mapcourse" class="cta-link" target="_blank">לפרטים על הקורס ←</a>
+      </div>
+    </div>
+
+    <div class="retake-row">
+      <button id="btn-retake">רוצה לענות שוב על ילד אחר? לחצו כאן</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ BOTTOM SHEET (reusable) ══ -->
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-head">
+    <span class="sheet-title" id="sheet-title"></span>
+    <button class="sheet-close" id="sheet-close">✕</button>
+  </div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/personas.js"></script>
+<script src="js/questions_v2.js"></script>
+<script>
+const HANDLE_STYLE = 'boat'; // 'boat' | 'compass'
+
+const S = {
+  age:null, gender:null,
+  questions:[], idx:0,
+  answers:[],
+  scores:{w:0,s:0},
+  persona:null, secondary:null,
+  name:'', email:''
+};
+
+const t = o => o?.[S.gender] ?? o?.n ?? '';
+const $ = id => document.getElementById(id);
+const P = PERSONAS;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo({top:0});
+}
+
+function getPersona(w,s){
+  if(w>=0&&s>=0)return'navigating_captain';
+  if(w<0&&s>=0)return'rigid_officer';
+  if(w>=0&&s<0)return'buddy_sailor';
+  return'lost_sailor';
+}
+function getSecondary(w,s){
+  const aw=Math.abs(w),as=Math.abs(s);
+  if(aw<as)return w>=0?'rigid_officer':'buddy_sailor';
+  if(as<aw)return s>=0?'buddy_sailor':'rigid_officer';
+  return null;
+}
+function toSVG(v){ return 40+((v+10)/20)*320; }
+function toSVGx(v){ return toSVG(v); }
+function strengthLevel(score){
+  return Math.min(5, Math.max(1, Math.round(((score+10)/20)*4) + 1));
+}
+
+/* ── Bottom sheet ── */
+function openSheet(title, html){
+  $('sheet-title').textContent = title;
+  $('sheet-body').innerHTML = html;
+  $('sheet-backdrop').classList.add('open');
+  $('sheet').classList.add('open');
+}
+function closeSheet(){
+  $('sheet-backdrop').classList.remove('open');
+  $('sheet').classList.remove('open');
+}
+$('sheet-backdrop').addEventListener('click', closeSheet);
+$('sheet-close').addEventListener('click', closeSheet);
+
+const DISCLAIMER_HTML = `
+  <p>מילוי השאלון מהווה הסכמה לכך שמדובר בכלי לימודי בלבד שאיננו כלי אבחוני. השאלון ותוצאותיו לא מהוות התערבות פסיכולוגית או אבחון רשמי, ואינם תחליף לטיפול או הדרכה מקצועיים. המטרה היא לעזור לכם לחשוב על דפוסי ההורות שלכם כדי שתוכלו להגשים את המשאלות שלכם כהורים.</p>
+  <p>לפרטים נוספים ראו את <a href="https://www.theparentingmap.com/privacy-policy/" target="_blank" rel="noopener">מדיניות הפרטיות</a>.</p>
+`;
+const ABOUT_HTML = `
+  <p>השאלון הזה יכול לעזור לכם לגלות את סגנון ההורות שאתם נוטים אליו. הוא מבוסס על מודל סגנונות ההורות של באומרינד, אחד המודלים הכי נחקרים בעולם ההורות, ובסופו תגלו לאיזה פרופיל הורי אתם נוטים: כמה מסגרת וגבולות אתם מציבים מצד אחד, וכמה חמימות וחיבור רגשי אתם מספקים מצד שני.</p>
+  <p><strong>איך זה עובד?</strong> עשר סיטואציות יומיומיות יוצגו בפניכם. בכל אחת הזיזו את שני הסליידרים למקום שמשקף את התגובה שלכם בדרך כלל. לאחר שתענו על עשר שאלות תקבלו את הפרופיל ההורי והסבר.</p>
+  <p>רוב ההורים לא מתנהגים בצורה קבועה כל הזמן. זה תלוי בסיטואציה, בילד שעליו מדובר, ובגורמים רבים אחרים כמו כמה ישנתם בלילה, כמה המצב האישי לחוץ וכן הלאה. לכן, השתדלו להזיז את הסליידרים למקום שמשקף את מה שקורה לכם ברוב המקרים.</p>
+`;
+
+$('link-consent-more').addEventListener('click', ()=>openSheet('עוד פרטים', DISCLAIMER_HTML));
+$('link-about').addEventListener('click', ()=>openSheet('על מה זה מבוסס?', ABOUT_HTML));
+$('link-disclaimer-teaser').addEventListener('click', ()=>openSheet('הבהרה', DISCLAIMER_HTML));
+
+/* ── Screen 1: Start ── */
+function updateStartBtn(){
+  $('btn-start').disabled = !(S.age && S.gender && $('chk-consent').checked);
+}
+document.querySelectorAll('.chip').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const {group,value} = b.dataset;
+    document.querySelectorAll(`.chip[data-group="${group}"]`).forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    if(group==='age') S.age=value; else S.gender=value;
+    updateStartBtn();
+  });
+});
+$('chk-consent').addEventListener('change', updateStartBtn);
+
+$('btn-start').addEventListener('click', ()=>{
+  S.questions = getQuestionsV2(S.age);
+  S.idx = 0;
+  S.answers = new Array(S.questions.length).fill(null);
+  S.scores = {w:0,s:0};
+  renderQ();
+  show('screen-quiz');
+});
+
+/* ── Screen 2: Quiz ── */
+function thumbMarkup(kind){
+  if(HANDLE_STYLE==='compass'){
+    return `<circle cx="17" cy="15" r="13" fill="#fff" stroke="var(--sea)" stroke-width="2.5"/>
+      <polygon points="17,4 21,15 17,26 13,15" fill="var(--coral)"/>
+      <polygon points="4,15 17,11 28,15 17,19" fill="var(--sea)"/>`;
+  }
+  return `<path d="M3,22 Q17,30 31,22 L27,27 Q17,32 7,27 Z" fill="var(--navy)"/>
+    <line x1="17" y1="2" x2="17" y2="22" stroke="var(--navy)" stroke-width="2"/>
+    <path d="M18,3 L18,18 L30,12 Z" fill="var(--coral)"/>
+    <path d="M16,8 L16,18 L5,13 Z" fill="#fff" stroke="var(--sea)" stroke-width="1"/>`;
+}
+$('thumb-boundaries').innerHTML = thumbMarkup('boundaries');
+$('thumb-connection').innerHTML = thumbMarkup('connection');
+
+function positionThumb(input, thumbSvg){
+  const min = +input.min, max = +input.max, val = +input.value;
+  const pct = (val-min)/(max-min);
+  // input has direction:ltr, so 0% is physically on the left of the track regardless of page RTL
+  const trackRect = input.getBoundingClientRect();
+  const wrapRect = input.parentElement.getBoundingClientRect();
+  const thumbW = 34;
+  const usableW = trackRect.width - thumbW;
+  const x = (trackRect.left - wrapRect.left) + thumbW/2 + pct*usableW;
+  thumbSvg.style.left = x + 'px';
+  thumbSvg.style.transform = 'translate(-50%,-50%)';
+}
+function wireSlider(inputId, thumbId){
+  const input = $(inputId), thumb = $(thumbId);
+  const reposition = ()=>positionThumb(input, thumb);
+  input.addEventListener('input', reposition);
+  window.addEventListener('resize', reposition);
+  return reposition;
+}
+const repositionBoundaries = wireSlider('slider-boundaries','thumb-boundaries');
+const repositionConnection = wireSlider('slider-connection','thumb-connection');
+
+function buildRoute(){
+  const svg = $('route-svg');
+  const total = S.questions.length;
+  const padX = 14, w = 380-padX*2, y = 23;
+  let html = `<line x1="${padX}" y1="${y}" x2="${380-padX}" y2="${y}" stroke="var(--sea-light)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>`;
+  for(let i=0;i<total;i++){
+    const x = padX + ((total-1-i)/(total-1))*w; // question 1 on the right (RTL start)
+    html += `<circle class="buoy" data-i="${i}" cx="${x}" cy="${y}" r="6" fill="var(--sand)" stroke="var(--sea)" stroke-width="2.5"/>`;
+  }
+  html += `<g id="route-boat" style="transition:transform .4s var(--ease);"><text x="0" y="${y+5}" text-anchor="middle" font-size="16">⛵</text></g>`;
+  svg.innerHTML = html;
+  S._routePadX = padX; S._routeW = w; S._routeY = y;
+}
+function updateRoute(){
+  const total = S.questions.length;
+  document.querySelectorAll('#route-svg .buoy').forEach(b=>{
+    const i = +b.dataset.i;
+    b.setAttribute('fill', i<=S.idx ? 'var(--sea)' : 'var(--sand)');
+  });
+  const x = S._routePadX + ((total-1-S.idx)/(total-1))*S._routeW;
+  $('route-boat').setAttribute('transform', `translate(${x},-2)`);
+}
+
+function renderQ(){
+  if(!$('route-svg').innerHTML) buildRoute();
+  const q = S.questions[S.idx], n = S.idx+1, tot = S.questions.length;
+  $('q-count').textContent = `רגע ${n} מתוך ${tot}`;
+  $('btn-back').classList.toggle('show', S.idx>0);
+  $('situation-text').textContent = t(q.situation);
+  $('next-label').textContent = n===tot ? 'לגלות את התוצאה' : 'ממשיכים להפליג';
+  $('b-low').textContent = t(q.boundaries.low);
+  $('b-high').textContent = t(q.boundaries.high);
+  $('c-low').textContent = t(q.connection.low);
+  $('c-high').textContent = t(q.connection.high);
+
+  const saved = S.answers[S.idx];
+  $('slider-boundaries').value = saved ? saved.boundaries : 50;
+  $('slider-connection').value = saved ? saved.connection : 50;
+  repositionBoundaries(); repositionConnection();
+  updateRoute();
+}
+
+function storeCurrent(){
+  S.answers[S.idx] = {
+    boundaries: parseInt($('slider-boundaries').value,10),
+    connection: parseInt($('slider-connection').value,10)
+  };
+}
+
+$('btn-next').addEventListener('click', ()=>{
+  storeCurrent();
+  if(S.idx < S.questions.length-1){
+    S.idx++;
+    renderQ();
+  } else {
+    finalizeScores();
+    show('screen-loading');
+    runLoadingAnimation();
+  }
+});
+
+$('btn-back').addEventListener('click', ()=>{
+  if(S.idx===0) return;
+  storeCurrent();
+  S.idx--;
+  renderQ();
+});
+
+function finalizeScores(){
+  const n = S.answers.length;
+  let sumW=0, sumS=0;
+  for(let i=0;i<n;i++){
+    const a = S.answers[i] || {boundaries:50, connection:50};
+    sumS += (a.boundaries/100)*20-10;
+    sumW += (a.connection/100)*20-10;
+  }
+  S.scores.w = Math.round(sumW/n);
+  S.scores.s = Math.round(sumS/n);
+}
+
+/* ── Screen 3: Loading ── */
+function runLoadingAnimation(){
+  const boat = $('loading-boat');
+  boat.setAttribute('transform','translate(20,96)');
+  requestAnimationFrame(()=>{
+    boat.style.transition = 'transform 1.8s ease-in-out';
+    requestAnimationFrame(()=>{
+      boat.setAttribute('transform','translate(235,90) scale(0.85)');
+    });
+  });
+  let dots=0;
+  const dotsTimer = setInterval(()=>{
+    dots=(dots+1)%4;
+    $('loading-dots').textContent = '.'.repeat(dots);
+  }, 400);
+  setTimeout(()=>{
+    clearInterval(dotsTimer);
+    boat.style.transition='';
+    buildTeaser();
+  }, 2000);
+}
+
+/* ── Screen 4: Teaser ── */
+function buildTeaser(){
+  const {w,s} = S.scores;
+  S.persona = getPersona(w,s);
+  S.secondary = getSecondary(w,s);
+  const p = P[S.persona];
+
+  show('screen-teaser');
+  $('teaser-persona-card').classList.remove('show');
+
+  const needle = $('compass-needle');
+  const angleMap = {navigating_captain:45, rigid_officer:-45, buddy_sailor:135, lost_sailor:-135};
+  const targetAngle = angleMap[S.persona];
+  needle.style.transition = 'none';
+  needle.setAttribute('transform','translate(100,100) rotate(0)');
+  requestAnimationFrame(()=>{
+    needle.style.transition = 'transform 1.5s cubic-bezier(0.34,1.56,0.4,1)';
+    requestAnimationFrame(()=>{
+      needle.setAttribute('transform',`translate(100,100) rotate(${targetAngle})`);
+    });
+  });
+
+  setTimeout(()=>{
+    $('t-name').innerHTML = p.nameHTML;
+    $('t-style').textContent = p.baumrind;
+    $('t-desc').textContent = t(p.teaser);
+    renderDots('dots-w', strengthLevel(w), 'w');
+    renderDots('dots-s', strengthLevel(s), 's');
+    $('teaser-persona-card').classList.add('show');
+  }, 1500);
+}
+function renderDots(containerId, level, cls){
+  const el = $(containerId);
+  el.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const d = document.createElement('span');
+    d.className = 'dot' + (i<=level ? ` filled ${cls}` : '');
+    el.appendChild(d);
+  }
+}
+
+/* ── Email gate / webhook ── */
+$('btn-submit').addEventListener('click', async ()=>{
+  const name = $('inp-name').value.trim();
+  const email = $('inp-email').value.trim();
+  const st = $('status');
+  if(!name){ st.textContent='נא להזין שם פרטי'; return; }
+  if(!email || !email.includes('@')){ st.textContent='נא להזין אימייל תקין'; return; }
+  S.name=name; S.email=email;
+  st.textContent='שולח...';
+  $('btn-submit').disabled = true;
+  try{
+    await fetch('https://webhooks.integrately.com/a/webhooks/0dbbf34454264af387b1af5ef7874561',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:name,email:email,persona:S.persona,ageGroup:S.age})
+    });
+  }catch(e){ console.warn('subscribe error:', e); }
+  st.textContent='';
+  $('btn-submit').disabled = false;
+  buildResults();
+});
+
+/* ── Screen 5: Results ── */
+function buildResults(){
+  const {w,s} = S.scores, p = P[S.persona];
+  $('r-name-display').innerHTML = p.nameHTML;
+  $('r-style-display').textContent = p.baumrind;
+  $('r-name2').innerHTML = p.nameHTML;
+  $('r-style2').textContent = p.baumrind;
+  renderDots('r-dots-w', strengthLevel(w), 'w');
+  renderDots('r-dots-s', strengthLevel(s), 's');
+
+  const descText = (typeof p.description === 'string' ? p.description : t(p.description));
+  const paragraphs = descText.split(/\n\n+/).map(x=>x.trim()).filter(Boolean);
+  const descHtml = paragraphs.map((para,i)=>{
+    const text = i===0 ? `${S.name}, ${para}` : para;
+    return `<p>${text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</p>`;
+  }).join('');
+  $('r-desc').innerHTML = descHtml;
+
+  const x = toSVGx(w), y = toSVG(-s);
+  $('ship-f').setAttribute('transform', `translate(${x},${y})`);
+
+  const sec = $('secondary');
+  if(S.secondary && S.secondary!==S.persona){
+    const sp = P[S.secondary];
+    sec.innerHTML = `<p><strong>נטייה משנית:</strong> הניקוד שלך מראה גם נגיעות של ${sp.baumrind.split('·')[0].trim()}. זה אומר שאת/ה לא "טיפוס אחד", יש גמישות שם שאפשר לעבוד איתה.</p>`;
+  } else { sec.innerHTML=''; }
+
+  show('screen-results');
+}
+
+/* ── Share ── */
+$('btn-share').addEventListener('click', async ()=>{
+  const p = P[S.persona];
+  const plainName = p.nameHTML.replace(/<[^>]+>/g,'');
+  const url = 'https://quiz.theparentingmap.com/quiz_v2.html';
+  const shareData = { title:'הפרופיל ההורי שלי', text:`הפרופיל ההורי שלי: ${plainName}`, url };
+  if(navigator.share){
+    try{ await navigator.share(shareData); }catch(e){ /* user cancelled */ }
+  } else {
+    try{
+      await navigator.clipboard.writeText(url);
+      showToast('הקישור הועתק');
+    }catch(e){ showToast('לא ניתן להעתיק'); }
+  }
+});
+function showToast(msg){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+/* ── Retake ── */
+function resetQuiz(){
+  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], scores:{w:0,s:0}, persona:null, secondary:null, name:'', email:''});
+  document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
+  $('chk-consent').checked = false;
+  $('btn-start').disabled = true;
+  $('inp-name').value=''; $('inp-email').value='';
+  $('status').textContent='';
+  show('screen-start');
+}
+$('btn-retake').addEventListener('click', resetQuiz);
+</script>
+</body>
+</html>
