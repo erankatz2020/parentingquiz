@@ -450,7 +450,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
     <div class="sliders">
       <div class="slider-card">
-        <div class="slider-endpoints">
+        <div class="slider-endpoints" dir="ltr">
           <span id="b-low"></span>
           <span id="b-high"></span>
         </div>
@@ -461,7 +461,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
       </div>
 
       <div class="slider-card">
-        <div class="slider-endpoints">
+        <div class="slider-endpoints" dir="ltr">
           <span id="c-low"></span>
           <span id="c-high"></span>
         </div>
@@ -646,7 +646,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 <script src="js/personas.js"></script>
 <script src="js/questions_v2.js"></script>
 <script>
-const HANDLE_STYLE = 'boat'; // 'boat' | 'compass'
+const HANDLE_STYLE = 'compass'; // 'boat' | 'compass'
 
 const S = {
   age:null, gender:null,
@@ -654,8 +654,15 @@ const S = {
   answers:[],
   scores:{w:0,s:0},
   persona:null, secondary:null,
+  charSuffix:null,
   name:'', email:''
 };
+
+function getCharSuffix(){
+  if(S.gender==='m' || S.gender==='f') return S.gender;
+  if(!S.charSuffix) S.charSuffix = Math.random()<0.5 ? 'm' : 'f';
+  return S.charSuffix;
+}
 
 const t = o => o?.[S.gender] ?? o?.n ?? '';
 const $ = id => document.getElementById(id);
@@ -687,10 +694,10 @@ function strengthLevel(score){
 
 /* ── Persona character visuals ── */
 const PERSONA_VISUALS = {
-  navigating_captain: { bg:'#CFE3E1', img:'assets/characters/captain.png', tagline:'יד אחת על ההגה, יד אחת על הלב' },
-  rigid_officer:       { bg:'#D5DCE4', img:'assets/characters/officer.png', tagline:'הספינה תמיד בזמן. אבל מי מקשיב לצוות?' },
-  buddy_sailor:        { bg:'#F7D6CC', img:'assets/characters/buddy.png',   tagline:'כולם רוצים להפליג איתו, אבל לאן?' },
-  lost_sailor:         { bg:'#DCE3E6', img:'assets/characters/lost.png',    tagline:'בערפל כרגע. אבל הפנס עוד דולק' }
+  navigating_captain: { bg:'#CFE3E1', name:'captain', tagline:'יד אחת על ההגה, יד אחת על הלב' },
+  rigid_officer:       { bg:'#D5DCE4', name:'officer', tagline:'הספינה תמיד בזמן. אבל מי מקשיב לצוות?' },
+  buddy_sailor:        { bg:'#F7D6CC', name:'buddy',   tagline:'כולם רוצים להפליג איתו, אבל לאן?' },
+  lost_sailor:         { bg:'#DCE3E6', name:'lost',    tagline:'בערפל כרגע. אבל הפנס עוד דולק' }
 };
 const FALLBACK_COMPASS_SVG = `
   <svg class="persona-char-fallback" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
@@ -714,7 +721,7 @@ function renderPersonaCard(persona, areaId, nameId, styleId, taglineId){
   img.addEventListener('error', ()=>{
     area.innerHTML = FALLBACK_COMPASS_SVG;
   }, { once:true });
-  img.src = v.img;
+  img.src = `assets/characters/${v.name}_${getCharSuffix()}.jpeg`;
   area.appendChild(img);
 }
 
@@ -766,8 +773,8 @@ $('btn-start').addEventListener('click', ()=>{
   S.idx = 0;
   S.answers = new Array(S.questions.length).fill(null);
   S.scores = {w:0,s:0};
-  renderQ();
   show('screen-quiz');
+  renderQ();
 });
 
 /* ── Screen 2: Quiz ── */
@@ -1024,7 +1031,7 @@ function showToast(msg){
 
 /* ── Retake ── */
 function resetQuiz(){
-  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], scores:{w:0,s:0}, persona:null, secondary:null, name:'', email:''});
+  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
   $('btn-start').disabled = true;
