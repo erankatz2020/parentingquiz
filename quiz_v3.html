@@ -721,7 +721,7 @@ function renderPersonaCard(persona, areaId, nameId, styleId, taglineId){
   img.addEventListener('error', ()=>{
     area.innerHTML = FALLBACK_COMPASS_SVG;
   }, { once:true });
-  img.src = `assets/characters/${v.name}_${getCharSuffix()}.jpeg`;
+  img.src = `assets/characters/${v.name}_${getCharSuffix()}.png`;
   area.appendChild(img);
 }
 
