@@ -771,8 +771,14 @@ function strengthLevel(score){
 const PERSONA_VISUALS = {
   navigating_captain: { bg:'#CFE3E1', name:'captain', tagline:'יד אחת על ההגה, יד אחת על הלב' },
   rigid_officer:       { bg:'#D5DCE4', name:'officer', tagline:'הספינה תמיד בזמן. אבל מי מקשיב לצוות?' },
-  buddy_sailor:        { bg:'#F7D6CC', name:'buddy',   tagline:'כולם רוצים להפליג איתו, אבל לאן?' },
+  buddy_sailor:        { bg:'#F7D6CC', name:'buddy',   tagline:{ m:'כולם רוצים להפליג איתו, אבל לאן?', f:'כולם רוצים להפליג איתה, אבל לאן?' } },
   lost_sailor:         { bg:'#DCE3E6', name:'lost',    tagline:'בערפל כרגע. אבל הפנס עוד דולק' }
+};
+const PERSONA_TITLES = {
+  navigating_captain: { m:'רב-חובל <em>מנווט</em>', f:'רב-חובלת <em>מנווטת</em>' },
+  rigid_officer:       { m:'הקצין <em>הנוקשה</em>', f:'הקצינה <em>הנוקשה</em>' },
+  buddy_sailor:        { m:'הספן <em>החברמן</em>', f:'הספנית <em>החברמנית</em>' },
+  lost_sailor:         { m:'הספן <em>האבוד</em>', f:'הספנית <em>האבודה</em>' }
 };
 const FALLBACK_COMPASS_SVG = `
   <svg class="persona-char-fallback" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
@@ -785,9 +791,10 @@ const FALLBACK_COMPASS_SVG = `
 function renderPersonaCard(persona, areaId, nameId, styleId, taglineId){
   const p = PERSONAS[persona];
   const v = PERSONA_VISUALS[persona];
-  $(nameId).innerHTML = p.nameHTML;
+  const suffix = getCharSuffix();
+  $(nameId).innerHTML = PERSONA_TITLES[persona][suffix];
   $(styleId).textContent = p.baumrind;
-  $(taglineId).textContent = v.tagline;
+  $(taglineId).textContent = typeof v.tagline === 'string' ? v.tagline : v.tagline[suffix];
   const area = $(areaId);
   area.style.background = v.bg;
   area.innerHTML = '';
@@ -796,7 +803,7 @@ function renderPersonaCard(persona, areaId, nameId, styleId, taglineId){
   img.addEventListener('error', ()=>{
     area.innerHTML = FALLBACK_COMPASS_SVG;
   }, { once:true });
-  img.src = `assets/characters/${v.name}_${getCharSuffix()}.png`;
+  img.src = `assets/characters/${v.name}_${suffix}.png`;
   area.appendChild(img);
 }
 
@@ -1080,7 +1087,7 @@ $('btn-submit').addEventListener('click', async ()=>{
 /* ── Screen 5: Results ── */
 function buildResults(){
   const {w,s} = S.scores, p = P[S.persona];
-  $('r-name-display').innerHTML = p.nameHTML;
+  $('r-name-display').innerHTML = PERSONA_TITLES[S.persona][getCharSuffix()];
   $('r-style-display').textContent = p.baumrind;
   renderPersonaCard(S.persona, 'r-char-area', 'r-name2', 'r-style2', 'r-tagline');
   renderDots('r-dots-w', strengthLevel(w), 'w');
@@ -1108,8 +1115,7 @@ function buildResults(){
 
 /* ── Share ── */
 $('btn-share').addEventListener('click', async ()=>{
-  const p = P[S.persona];
-  const plainName = p.nameHTML.replace(/<[^>]+>/g,'');
+  const plainName = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
   const url = 'https://quiz.theparentingmap.com/quiz_v2.html';
   const shareData = { title:'הפרופיל ההורי שלי', text:`הפרופיל ההורי שלי: ${plainName}`, url };
   if(navigator.share){
