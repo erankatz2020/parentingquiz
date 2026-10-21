@@ -43,7 +43,6 @@ em,i{font-style:normal;}
   min-height:100vh;
   position:relative;
   padding-bottom:96px;
-  perspective:1000px;
 }
 
 .screen{display:none;}
@@ -202,7 +201,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   border-radius:16px;
   padding:18px 18px;
   margin:4px 18px 16px;
-  font-size:.98rem;line-height:1.65;
+  font-size:17px;line-height:1.6;
 }
 
 .sliders{padding:0 18px;display:flex;flex-direction:column;gap:16px;}
@@ -217,7 +216,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   margin-bottom:18px;
 }
 .slider-endpoints span{
-  flex:1;font-size:.84rem;line-height:1.45;color:var(--ink-soft);text-align:center;
+  flex:1;font-size:14px;line-height:1.4;color:var(--ink-soft);text-align:center;
 }
 .slider-track-wrap{position:relative;height:34px;}
 .slider-track-wrap input[type=range]{
@@ -270,6 +269,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 /* ── teaser / results ── */
 .center{text-align:center;}
 .lead-line{font-size:.92rem;color:var(--ink-soft);text-align:center;margin:18px 0 10px;}
+.compass-block{transition:opacity .3s var(--ease);}
 .compass-wrap{width:200px;height:200px;margin:10px auto 18px;position:relative;}
 .compass-svg{width:100%;height:100%;}
 .persona-card{
@@ -284,8 +284,8 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 }
 .persona-card.show{display:block;animation:cardFlip .6s var(--ease);}
 @keyframes cardFlip{
-  from{opacity:0;transform:rotateY(85deg);}
-  to{opacity:1;transform:rotateY(0deg);}
+  from{opacity:0;transform:perspective(1000px) rotateY(85deg);}
+  to{opacity:1;transform:perspective(1000px) rotateY(0deg);}
 }
 .persona-char-area{
   margin:0 -20px 18px;
@@ -301,7 +301,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .persona-name{font-family:var(--font-display);font-weight:900;font-size:1.5rem;color:var(--navy);line-height:1.15;}
 .persona-name em{color:var(--coral);}
 .persona-style{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);margin-top:5px;}
-.persona-tagline{font-size:.69rem;color:var(--ink-soft);margin-top:7px;line-height:1.4;}
+.persona-tagline{font-size:13px;color:var(--ink-soft);margin-top:7px;line-height:1.4;}
 
 .strength-rows{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
 .strength-row{display:flex;align-items:center;gap:10px;justify-content:center;}
@@ -311,7 +311,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .dot.filled.w{background:var(--coral);}
 .dot.filled.s{background:var(--sea);}
 
-.teaser-text{font-size:.94rem;line-height:1.75;color:var(--ink-soft);text-align:right;margin-top:14px;}
+.teaser-text{font-size:16px;line-height:1.7;color:var(--ink-soft);text-align:right;margin-top:14px;}
 
 .gate-card{margin:0 18px 18px;}
 .gate-title{font-family:var(--font-display);font-weight:900;font-size:1.1rem;color:var(--navy);text-align:center;margin-bottom:16px;}
@@ -340,7 +340,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   text-shadow:0 1px 2px rgba(0,0,0,0.35);
 }
 
-.res-desc{font-size:.95rem;line-height:1.8;color:var(--ink-soft);margin:14px 18px;}
+.res-desc{font-size:16px;line-height:1.7;color:var(--ink-soft);margin:14px 18px;}
 .res-desc p{margin-bottom:14px;}
 .res-desc p:last-child{margin-bottom:0;}
 
@@ -505,17 +505,19 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   <!-- ══ SCREEN 4: TEASER ══ -->
   <div id="screen-teaser" class="screen">
     <div class="pad" style="padding-bottom:0;">
-      <div class="lead-line">המצפן שלך הצביע על...</div>
-      <div class="compass-wrap">
-        <svg class="compass-svg" id="compass-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="100" cy="100" r="92" fill="#fff" stroke="var(--sea)" stroke-width="4"/>
-          <circle cx="100" cy="100" r="76" fill="none" stroke="var(--border)" stroke-width="1"/>
-          <g id="compass-needle" transform="translate(100,100)">
-            <polygon points="0,-62 12,0 0,16 -12,0" fill="var(--coral)"/>
-            <polygon points="62,0 0,12 0,-12 -62,0" fill="var(--sea)" opacity="0.85"/>
-          </g>
-          <circle cx="100" cy="100" r="9" fill="var(--navy)"/>
-        </svg>
+      <div class="compass-block" id="compass-block">
+        <div class="lead-line">המצפן שלך הצביע על...</div>
+        <div class="compass-wrap">
+          <svg class="compass-svg" id="compass-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="92" fill="#fff" stroke="var(--sea)" stroke-width="4"/>
+            <circle cx="100" cy="100" r="76" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <g id="compass-needle" transform="translate(100,100)">
+              <polygon points="0,-62 12,0 0,16 -12,0" fill="var(--coral)"/>
+              <polygon points="62,0 0,12 0,-12 -62,0" fill="var(--sea)" opacity="0.85"/>
+            </g>
+            <circle cx="100" cy="100" r="9" fill="var(--navy)"/>
+          </svg>
+        </div>
       </div>
     </div>
 
@@ -925,6 +927,9 @@ function buildTeaser(){
 
   show('screen-teaser');
   $('teaser-persona-card').classList.remove('show');
+  const compassBlock = $('compass-block');
+  compassBlock.style.display = '';
+  compassBlock.style.opacity = '1';
 
   const needle = $('compass-needle');
   const angleMap = {navigating_captain:45, rigid_officer:-45, buddy_sailor:135, lost_sailor:-135};
@@ -944,6 +949,9 @@ function buildTeaser(){
     renderDots('dots-w', strengthLevel(w), 'w');
     renderDots('dots-s', strengthLevel(s), 's');
     $('teaser-persona-card').classList.add('show');
+
+    compassBlock.style.opacity = '0';
+    setTimeout(()=>{ compassBlock.style.display = 'none'; }, 300);
   }, 1500);
 }
 function renderDots(containerId, level, cls){
