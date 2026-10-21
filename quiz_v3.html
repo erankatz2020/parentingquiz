@@ -261,17 +261,42 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   filter:drop-shadow(0 2px 4px rgba(29,43,58,0.3));
 }
 
-/* ── loading ── */
-.loading-wrap{padding:60px 24px;text-align:center;}
-.loading-svg{width:100%;max-width:300px;height:140px;margin:0 auto 24px;}
-.loading-text{font-size:1.05rem;font-weight:700;color:var(--sea);}
+/* ── loading / voyage ── */
+.voyage-wrap{padding:28px 18px 8px;text-align:center;}
+.voyage-svg{width:100%;max-width:340px;height:auto;margin:0 auto;display:block;}
+.voyage-caption{font-size:16px;font-weight:700;color:var(--sea);margin-top:16px;min-height:22px;}
+.voyage-dots{display:flex;gap:7px;justify-content:center;margin-top:12px;}
+.voyage-dot{width:9px;height:9px;border-radius:50%;background:var(--border);transition:background .3s var(--ease);}
+.voyage-dot.filled{background:var(--coral);}
+#boat-trail{stroke-dasharray:5 7;}
+#voyage-boat-travel{animation:boatSail 4.2s cubic-bezier(0.45,0,0.55,1) forwards;}
+#voyage-boat-bob{animation:boatBob 1.1s ease-in-out infinite;}
+@keyframes boatSail{ from{transform:translateX(0);} to{transform:translateX(-200px);} }
+@keyframes boatBob{
+  0%{transform:translateY(0) rotate(0deg);}
+  25%{transform:translateY(-3px) rotate(-3deg);}
+  50%{transform:translateY(0) rotate(0deg);}
+  75%{transform:translateY(3px) rotate(3deg);}
+  100%{transform:translateY(0) rotate(0deg);}
+}
+#trail-clip-rect{animation:trailReveal 4.2s cubic-bezier(0.45,0,0.55,1) forwards;}
+@keyframes trailReveal{ from{x:255px; width:0;} to{x:55px; width:200px;} }
+#wave-row1{animation:waveScroll1 6s linear infinite;}
+#wave-row2{animation:waveScroll2 4.5s linear infinite;}
+@keyframes waveScroll1{ from{transform:translateX(0);} to{transform:translateX(-280px);} }
+@keyframes waveScroll2{ from{transform:translateX(-280px);} to{transform:translateX(0);} }
+#lighthouse-lamp.pulse, #lighthouse-glow.pulse{animation:lampPulse .9s ease-in-out infinite;}
+@keyframes lampPulse{ 0%,100%{opacity:.55;} 50%{opacity:1;} }
+@media (prefers-reduced-motion: reduce){
+  #voyage-boat-travel{animation:none; transform:translateX(-200px);}
+  #voyage-boat-bob{animation:none;}
+  #trail-clip-rect{animation:none; x:55px; width:200px;}
+  #wave-row1, #wave-row2{animation:none;}
+  #lighthouse-lamp.pulse, #lighthouse-glow.pulse{animation:none; opacity:1;}
+}
 
 /* ── teaser / results ── */
 .center{text-align:center;}
-.lead-line{font-size:.92rem;color:var(--ink-soft);text-align:center;margin:18px 0 10px;}
-.compass-block{transition:opacity .3s var(--ease);}
-.compass-wrap{width:200px;height:200px;margin:10px auto 18px;position:relative;}
-.compass-svg{width:100%;height:100%;}
 .persona-card{
   display:none;
   background:var(--card);
@@ -282,10 +307,13 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   text-align:center;
   overflow:hidden;
 }
-.persona-card.show{display:block;animation:cardFlip .6s var(--ease);}
-@keyframes cardFlip{
-  from{opacity:0;transform:perspective(1000px) rotateY(85deg);}
-  to{opacity:1;transform:perspective(1000px) rotateY(0deg);}
+.persona-card.show{display:block;animation:cardPopIn .45s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes cardPopIn{
+  from{opacity:0;transform:scale(.92);}
+  to{opacity:1;transform:scale(1);}
+}
+@media (prefers-reduced-motion: reduce){
+  .persona-card.show{animation:none;}
 }
 .persona-char-area{
   margin:0 -20px 18px;
@@ -481,45 +509,90 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
   </div>
 
-  <!-- ══ SCREEN 3: LOADING ══ -->
+  <!-- ══ SCREEN 3: LOADING / VOYAGE ══ -->
   <div id="screen-loading" class="screen">
-    <div class="loading-wrap">
-      <svg class="loading-svg" id="loading-svg" viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10,110 Q80,95 150,108 T290,100" stroke="var(--sea-light)" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <g transform="translate(255,90)">
-          <ellipse cx="0" cy="18" rx="26" ry="10" fill="#E3D6B8"/>
-          <circle cx="-6" cy="4" r="14" fill="var(--sea)"/>
-          <circle cx="8" cy="-2" r="10" fill="var(--sea-dark)"/>
+    <div class="voyage-wrap">
+      <svg class="voyage-svg" id="voyage-svg" viewBox="0 0 280 230" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="trail-clip"><rect id="trail-clip-rect" x="255" y="0" width="0" height="230"/></clipPath>
+        </defs>
+
+        <!-- sky -->
+        <circle cx="248" cy="38" r="26" fill="var(--coral)" opacity="0.22"/>
+        <circle cx="248" cy="38" r="17" fill="var(--coral)"/>
+        <g fill="#fff" opacity="0.85">
+          <g><ellipse cx="60" cy="34" rx="12" ry="8"/><ellipse cx="72" cy="28" rx="14" ry="9"/><ellipse cx="84" cy="35" rx="10" ry="7"/></g>
+          <g><ellipse cx="140" cy="55" rx="10" ry="7"/><ellipse cx="152" cy="50" rx="12" ry="8"/><ellipse cx="163" cy="56" rx="9" ry="6"/></g>
+          <g><ellipse cx="195" cy="22" rx="8" ry="5"/><ellipse cx="204" cy="20" rx="9" ry="6"/></g>
         </g>
-        <g id="loading-boat" transform="translate(20,96)">
-          <path d="M-16,16 Q0,24 16,16 L12,21 Q0,26 -12,21 Z" fill="var(--navy)"/>
-          <line x1="0" y1="-22" x2="0" y2="16" stroke="var(--navy)" stroke-width="2"/>
-          <path d="M1,-20 L1,12 L17,4 Z" fill="var(--coral)"/>
-          <path d="M-1,-13 L-1,12 L-14,6 Z" fill="#fff" stroke="var(--sea)" stroke-width="1"/>
+
+        <!-- sea -->
+        <rect x="0" y="150" width="280" height="80" fill="var(--sea-light)"/>
+        <line x1="0" y1="150" x2="280" y2="150" stroke="var(--sea)" stroke-width="1.5" opacity="0.35"/>
+        <path id="wave-row1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+        <path id="wave-row2" fill="none" stroke="var(--sea)" stroke-width="2" stroke-linecap="round" opacity="0.28"/>
+
+        <!-- island 1: palm (rightmost) -->
+        <g>
+          <ellipse cx="235" cy="152" rx="28" ry="9" fill="#E3D6B8"/>
+          <path d="M235,150 C233,138 237,128 236,116" stroke="#8A6A45" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <g fill="#6E9B7C">
+            <path d="M236,116 Q220,110 212,118 Q224,116 236,120 Z"/>
+            <path d="M236,116 Q252,108 262,114 Q248,114 236,120 Z"/>
+            <path d="M236,116 Q230,100 220,96 Q230,106 236,118 Z"/>
+            <path d="M236,116 Q244,100 254,98 Q244,106 236,118 Z"/>
+          </g>
+        </g>
+
+        <!-- island 2: rocks + flag -->
+        <g>
+          <ellipse cx="140" cy="152" rx="26" ry="8" fill="#E3D6B8"/>
+          <polygon points="122,151 132,136 144,150 136,152" fill="#9AA4AC"/>
+          <polygon points="140,152 150,140 158,151 148,153" fill="#AEB6BC"/>
+          <line x1="140" y1="150" x2="140" y2="122" stroke="var(--ink-soft)" stroke-width="2"/>
+          <polygon points="140,122 154,128 140,134" fill="var(--coral)"/>
+        </g>
+
+        <!-- island 3: lighthouse (destination) -->
+        <g>
+          <ellipse cx="45" cy="153" rx="22" ry="7" fill="#E3D6B8"/>
+          <circle id="lighthouse-glow" cx="45" cy="103" r="12" fill="#FFD369" opacity="0.35"/>
+          <rect x="38" y="108" width="14" height="40" rx="2" fill="#fff" stroke="var(--navy)" stroke-width="1.5"/>
+          <rect x="38" y="116" width="14" height="7" fill="var(--coral)"/>
+          <rect x="38" y="131" width="14" height="7" fill="var(--coral)"/>
+          <rect x="41" y="98" width="8" height="11" fill="#fff" stroke="var(--navy)" stroke-width="1.3"/>
+          <polygon points="39,98 45,86 51,98" fill="var(--coral)" stroke="var(--navy)" stroke-width="1"/>
+          <circle id="lighthouse-lamp" cx="45" cy="103" r="4" fill="#FFE2A0"/>
+        </g>
+
+        <!-- trail -->
+        <path id="boat-trail" d="M255,146 L55,146" stroke="#fff" stroke-width="2.5" stroke-linecap="round" clip-path="url(#trail-clip)"/>
+
+        <!-- boat -->
+        <g transform="translate(255,146)">
+          <g id="voyage-boat-travel">
+            <g id="voyage-boat-bob">
+              <path d="M-16,16 Q0,24 16,16 L12,21 Q0,26 -12,21 Z" fill="var(--navy)"/>
+              <line x1="0" y1="-22" x2="0" y2="16" stroke="var(--navy)" stroke-width="2"/>
+              <path d="M1,-20 L1,12 L17,4 Z" fill="var(--coral)"/>
+              <path d="M-1,-13 L-1,12 L-14,6 Z" fill="#fff" stroke="var(--sea)" stroke-width="1"/>
+            </g>
+          </g>
         </g>
       </svg>
-      <div class="loading-text">מנווטים אל התוצאה<span id="loading-dots"></span></div>
+
+      <div class="voyage-caption" id="voyage-caption"></div>
+      <div class="voyage-dots">
+        <span class="voyage-dot"></span>
+        <span class="voyage-dot"></span>
+        <span class="voyage-dot"></span>
+      </div>
     </div>
   </div>
 
   <!-- ══ SCREEN 4: TEASER ══ -->
   <div id="screen-teaser" class="screen">
-    <div class="pad" style="padding-bottom:0;">
-      <div class="compass-block" id="compass-block">
-        <div class="lead-line">המצפן שלך הצביע על...</div>
-        <div class="compass-wrap">
-          <svg class="compass-svg" id="compass-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="100" cy="100" r="92" fill="#fff" stroke="var(--sea)" stroke-width="4"/>
-            <circle cx="100" cy="100" r="76" fill="none" stroke="var(--border)" stroke-width="1"/>
-            <g id="compass-needle" transform="translate(100,100)">
-              <polygon points="0,-62 12,0 0,16 -12,0" fill="var(--coral)"/>
-              <polygon points="62,0 0,12 0,-12 -62,0" fill="var(--sea)" opacity="0.85"/>
-            </g>
-            <circle cx="100" cy="100" r="9" fill="var(--navy)"/>
-          </svg>
-        </div>
-      </div>
-    </div>
+    <div class="pad" style="padding-bottom:0;height:8px;"></div>
 
     <div class="persona-card" id="teaser-persona-card">
       <div class="persona-char-area" id="t-char-area"></div>
@@ -897,25 +970,60 @@ function finalizeScores(){
 }
 
 /* ── Screen 3: Loading ── */
+function buildWavePath(y, amp, period, repeats){
+  let d = `M0,${y}`;
+  for(let i=0;i<repeats;i++){
+    const xMid = i*period + period/2, xEnd = (i+1)*period;
+    d += ` Q${xMid},${y-amp} ${xEnd},${y}`;
+  }
+  return d;
+}
+$('wave-row1').setAttribute('d', buildWavePath(168, 4, 40, 14));
+$('wave-row2').setAttribute('d', buildWavePath(190, 3, 28, 20));
+
+const VOYAGE_CAPTIONS = [
+  'אוספים את התשובות שלכם...',
+  'מחשבים את הכיוון...',
+  'מסמנים את המקום שלכם על המפה...',
+  'הגענו!'
+];
+function restartAnim(el){ el.style.animation='none'; void el.offsetWidth; el.style.animation=''; }
+
 function runLoadingAnimation(){
-  const boat = $('loading-boat');
-  boat.setAttribute('transform','translate(20,96)');
-  requestAnimationFrame(()=>{
-    boat.style.transition = 'transform 1.8s ease-in-out';
-    requestAnimationFrame(()=>{
-      boat.setAttribute('transform','translate(235,90) scale(0.85)');
-    });
-  });
-  let dots=0;
-  const dotsTimer = setInterval(()=>{
-    dots=(dots+1)%4;
-    $('loading-dots').textContent = '.'.repeat(dots);
-  }, 400);
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const caption = $('voyage-caption');
+  const dots = document.querySelectorAll('.voyage-dot');
+  const lamp = $('lighthouse-lamp'), glow = $('lighthouse-glow');
+
+  function setStage(i){
+    caption.textContent = VOYAGE_CAPTIONS[i];
+    dots.forEach((d,idx)=>d.classList.toggle('filled', idx < Math.min(i+1,3)));
+  }
+
+  lamp.classList.remove('pulse');
+  glow.classList.remove('pulse');
+
+  if(reduced){
+    setStage(3);
+    lamp.classList.add('pulse');
+    glow.classList.add('pulse');
+    setTimeout(buildTeaser, 1000);
+    return;
+  }
+
+  restartAnim($('voyage-boat-travel'));
+  restartAnim($('voyage-boat-bob'));
+  restartAnim($('trail-clip-rect'));
+
+  setStage(0);
+  setTimeout(()=>setStage(1), 1400);
+  setTimeout(()=>setStage(2), 2800);
   setTimeout(()=>{
-    clearInterval(dotsTimer);
-    boat.style.transition='';
-    buildTeaser();
-  }, 2000);
+    setStage(3);
+    lamp.classList.add('pulse');
+    glow.classList.add('pulse');
+  }, 4200);
+  setTimeout(buildTeaser, 5200);
 }
 
 /* ── Screen 4: Teaser ── */
@@ -925,34 +1033,17 @@ function buildTeaser(){
   S.secondary = getSecondary(w,s);
   const p = P[S.persona];
 
+  renderPersonaCard(S.persona, 't-char-area', 't-name', 't-style', 't-tagline');
+  $('t-desc').textContent = t(p.teaser);
+  renderDots('dots-w', strengthLevel(w), 'w');
+  renderDots('dots-s', strengthLevel(s), 's');
+
   show('screen-teaser');
-  $('teaser-persona-card').classList.remove('show');
-  const compassBlock = $('compass-block');
-  compassBlock.style.display = '';
-  compassBlock.style.opacity = '1';
 
-  const needle = $('compass-needle');
-  const angleMap = {navigating_captain:45, rigid_officer:-45, buddy_sailor:135, lost_sailor:-135};
-  const targetAngle = angleMap[S.persona];
-  needle.style.transition = 'none';
-  needle.setAttribute('transform','translate(100,100) rotate(0)');
-  requestAnimationFrame(()=>{
-    needle.style.transition = 'transform 1.5s cubic-bezier(0.34,1.56,0.4,1)';
-    requestAnimationFrame(()=>{
-      needle.setAttribute('transform',`translate(100,100) rotate(${targetAngle})`);
-    });
-  });
-
-  setTimeout(()=>{
-    renderPersonaCard(S.persona, 't-char-area', 't-name', 't-style', 't-tagline');
-    $('t-desc').textContent = t(p.teaser);
-    renderDots('dots-w', strengthLevel(w), 'w');
-    renderDots('dots-s', strengthLevel(s), 's');
-    $('teaser-persona-card').classList.add('show');
-
-    compassBlock.style.opacity = '0';
-    setTimeout(()=>{ compassBlock.style.display = 'none'; }, 300);
-  }, 1500);
+  const card = $('teaser-persona-card');
+  card.classList.remove('show');
+  void card.offsetWidth; // force reflow so the pop-in animation restarts on retake
+  card.classList.add('show');
 }
 function renderDots(containerId, level, cls){
   const el = $(containerId);
