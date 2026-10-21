@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>איזה הורה אני בעצם? — המסע ההורי</title>
 
+<meta property="og:type" content="website" />
+<meta property="og:title" content="איזה הורה אני בעצם?" />
+<meta property="og:description" content="10 רגעים מהחיים · 3 דקות · מצפן אחד. שאלון הפרופיל ההורי של מפת ההורות." />
+<meta property="og:image" content="https://quiz.theparentingmap.com/assets/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://quiz.theparentingmap.com/quiz_v3.html" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="איזה הורה אני בעצם?" />
+<meta name="twitter:description" content="10 רגעים מהחיים · 3 דקות · מצפן אחד. שאלון הפרופיל ההורי של מפת ההורות." />
+<meta name="twitter:image" content="https://quiz.theparentingmap.com/assets/og-image.png" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -408,6 +420,33 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   z-index:95;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── share card (rendered off-screen, captured to PNG) ── */
+#share-card{
+  position:fixed; left:-9999px; top:0;
+  width:540px; height:675px;
+  background:#F6EFE4;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:48px 40px;
+  box-sizing:border-box;
+  font-family:'Assistant',sans-serif;
+  text-align:center;
+}
+#share-char-area{
+  width:100%; height:340px;
+  border-radius:24px;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  margin-bottom:30px;
+}
+#share-char-area img{max-width:100%;max-height:100%;object-fit:contain;}
+#share-title{
+  font-family:'Playfair Display',Georgia,serif;
+  font-weight:900; font-size:40px; color:#1D2B3A; line-height:1.2;
+}
+#share-title em{font-style:normal; color:#E8735A;}
+#share-tagline{font-size:20px; color:#3C4A56; margin-top:14px;}
+#share-footer{font-size:18px; font-weight:700; color:#1F6F78; margin-top:auto; padding-top:30px;}
 </style>
 </head>
 <body>
@@ -706,6 +745,14 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 </div>
 
+<!-- ══ SHARE CARD (rendered off-screen to PNG for sharing) ══ -->
+<div id="share-card">
+  <div id="share-char-area"></div>
+  <div id="share-title"></div>
+  <div id="share-tagline"></div>
+  <div id="share-footer">quiz.theparentingmap.com</div>
+</div>
+
 <!-- ══ BOTTOM SHEET (reusable) ══ -->
 <div class="sheet-backdrop" id="sheet-backdrop"></div>
 <div class="sheet" id="sheet">
@@ -718,6 +765,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="js/personas.js"></script>
 <script src="js/questions_v2.js"></script>
 <script>
@@ -1119,12 +1167,66 @@ function buildResults(){
 }
 
 /* ── Share ── */
+function loadImage(src){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+async function renderShareCard(){
+  const persona = S.persona, suffix = getCharSuffix();
+  const v = PERSONA_VISUALS[persona];
+  const charArea = $('share-char-area');
+  charArea.style.background = v.bg;
+  charArea.innerHTML = '';
+  try{
+    const img = await loadImage(`assets/characters/${v.name}_${suffix}.png`);
+    charArea.appendChild(img);
+  }catch(e){
+    charArea.innerHTML = FALLBACK_COMPASS_SVG;
+  }
+  $('share-title').innerHTML = PERSONA_TITLES[persona][suffix];
+  $('share-tagline').textContent = typeof v.tagline === 'string' ? v.tagline : v.tagline[suffix];
+
+  const canvas = await html2canvas($('share-card'), { scale:2, backgroundColor:'#F6EFE4', useCORS:true });
+  return canvas;
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
 $('btn-share').addEventListener('click', async ()=>{
-  const plainName = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
-  const url = 'https://quiz.theparentingmap.com/quiz_v2.html';
-  const shareData = { title:'הפרופיל ההורי שלי', text:`הפרופיל ההורי שלי: ${plainName}`, url };
+  const url = 'https://quiz.theparentingmap.com/';
+
   if(navigator.share){
-    try{ await navigator.share(shareData); }catch(e){ /* user cancelled */ }
+    let file = null;
+    try{
+      const canvas = await renderShareCard();
+      const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+      file = new File([blob], 'parenting-profile.png', { type:'image/png' });
+    }catch(e){ console.warn('share card render failed:', e); }
+
+    const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
+    const text = `יצא לי ${title} 🧭 איזה הורה אתם?`;
+
+    if(file && navigator.canShare && navigator.canShare({ files:[file] })){
+      try{ await navigator.share({ files:[file], title:'הפרופיל ההורי שלי', text, url }); }
+      catch(e){ /* user cancelled */ }
+    } else if(file){
+      downloadBlob(file, 'parenting-profile.png');
+      showToast('התמונה נשמרה, אפשר לשתף אותה');
+    } else {
+      try{ await navigator.share({ title:'הפרופיל ההורי שלי', text, url }); }
+      catch(e){ /* user cancelled */ }
+    }
   } else {
     try{
       await navigator.clipboard.writeText(url);
