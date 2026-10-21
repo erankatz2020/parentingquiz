@@ -231,6 +231,18 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   flex:1;font-size:14px;line-height:1.4;color:var(--ink-soft);text-align:center;
 }
 .slider-track-wrap{position:relative;height:34px;}
+.slider-track-visual{
+  position:absolute; left:0; right:0; top:50%;
+  transform:translateY(-50%);
+  height:8px; border-radius:99px;
+  pointer-events:none;
+}
+.slider-track-wrap.boundaries .slider-track-visual{
+  background:linear-gradient(90deg, var(--sea-light), var(--sea));
+}
+.slider-track-wrap.connection .slider-track-visual{
+  background:linear-gradient(90deg, var(--coral-light), var(--coral));
+}
 .slider-track-wrap input[type=range]{
   -webkit-appearance:none;appearance:none;
   position:absolute;inset:0;
@@ -238,39 +250,44 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   background:transparent;margin:0;
   direction:ltr;
   cursor:pointer;
+  outline:none;
 }
 .slider-track-wrap input[type=range]::-webkit-slider-runnable-track{
-  height:8px;border-radius:99px;margin-top:13px;
+  height:8px;background:transparent;
 }
 .slider-track-wrap input[type=range]::-moz-range-track{
-  height:8px;border-radius:99px;
-}
-.slider-track-wrap.boundaries input[type=range]::-webkit-slider-runnable-track{
-  background:linear-gradient(90deg, var(--sea-light), var(--sea));
-}
-.slider-track-wrap.boundaries input[type=range]::-moz-range-track{
-  background:linear-gradient(90deg, var(--sea-light), var(--sea));
-}
-.slider-track-wrap.connection input[type=range]::-webkit-slider-runnable-track{
-  background:linear-gradient(90deg, var(--coral-light), var(--coral));
-}
-.slider-track-wrap.connection input[type=range]::-moz-range-track{
-  background:linear-gradient(90deg, var(--coral-light), var(--coral));
+  height:8px;background:transparent;
 }
 .slider-track-wrap input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;appearance:none;
   width:34px;height:30px;background:transparent;border:none;
-  margin-top:-8px;
+  border-radius:50%;
+  margin-top:-11px;
 }
 .slider-track-wrap input[type=range]::-moz-range-thumb{
   width:34px;height:30px;background:transparent;border:none;
+  border-radius:50%;
+}
+.slider-track-wrap input[type=range]:focus-visible::-webkit-slider-thumb{
+  box-shadow:0 0 0 3px var(--coral);
+}
+.slider-track-wrap input[type=range]:focus-visible::-moz-range-thumb{
+  box-shadow:0 0 0 3px var(--coral);
 }
 .slider-thumb-svg{
-  position:absolute;top:50%;
+  position:absolute; top:0;
   width:34px;height:30px;
-  transform:translate(50%,-50%);
+  transform:translate(-50%,-50%);
   pointer-events:none;
   filter:drop-shadow(0 2px 4px rgba(29,43,58,0.3));
+}
+.kbd-hint-desktop{
+  display:none;
+  font-size:13px; color:var(--ink-soft); text-align:center;
+  margin-top:4px; opacity:0.75;
+}
+@media (hover:hover) and (pointer:fine){
+  .kbd-hint-desktop{display:block;}
 }
 
 /* ── loading / voyage ── */
@@ -522,6 +539,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
           <span id="b-high"></span>
         </div>
         <div class="slider-track-wrap boundaries">
+          <div class="slider-track-visual" id="track-boundaries"></div>
           <input type="range" id="slider-boundaries" min="0" max="100" step="1" value="50"/>
           <svg class="slider-thumb-svg" id="thumb-boundaries" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -533,10 +551,13 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
           <span id="c-high"></span>
         </div>
         <div class="slider-track-wrap connection">
+          <div class="slider-track-visual" id="track-connection"></div>
           <input type="range" id="slider-connection" min="0" max="100" step="1" value="50"/>
           <svg class="slider-thumb-svg" id="thumb-connection" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
       </div>
+
+      <div class="kbd-hint-desktop">אפשר גם במקלדת: חיצים להזזה, Enter להמשך</div>
     </div>
 
     <div style="height:14px;"></div>
@@ -856,15 +877,19 @@ function renderPersonaCard(persona, areaId, nameId, styleId, taglineId){
 }
 
 /* ── Bottom sheet ── */
-function openSheet(title, html){
+let sheetOpener = null;
+function openSheet(title, html, opener){
+  sheetOpener = opener || document.activeElement;
   $('sheet-title').textContent = title;
   $('sheet-body').innerHTML = html;
   $('sheet-backdrop').classList.add('open');
   $('sheet').classList.add('open');
+  $('sheet-close').focus();
 }
 function closeSheet(){
   $('sheet-backdrop').classList.remove('open');
   $('sheet').classList.remove('open');
+  if(sheetOpener){ sheetOpener.focus(); sheetOpener = null; }
 }
 $('sheet-backdrop').addEventListener('click', closeSheet);
 $('sheet-close').addEventListener('click', closeSheet);
@@ -879,9 +904,9 @@ const ABOUT_HTML = `
   <p>רוב ההורים לא מתנהגים בצורה קבועה כל הזמן. זה תלוי בסיטואציה, בילד שעליו מדובר, ובגורמים רבים אחרים כמו כמה ישנתם בלילה, כמה המצב האישי לחוץ וכן הלאה. לכן, השתדלו להזיז את הסליידרים למקום שמשקף את מה שקורה לכם ברוב המקרים.</p>
 `;
 
-$('link-consent-more').addEventListener('click', ()=>openSheet('עוד פרטים', DISCLAIMER_HTML));
-$('link-about').addEventListener('click', ()=>openSheet('על מה זה מבוסס?', ABOUT_HTML));
-$('link-disclaimer-teaser').addEventListener('click', ()=>openSheet('הבהרה', DISCLAIMER_HTML));
+$('link-consent-more').addEventListener('click', e=>openSheet('עוד פרטים', DISCLAIMER_HTML, e.currentTarget));
+$('link-about').addEventListener('click', e=>openSheet('על מה זה מבוסס?', ABOUT_HTML, e.currentTarget));
+$('link-disclaimer-teaser').addEventListener('click', e=>openSheet('הבהרה', DISCLAIMER_HTML, e.currentTarget));
 
 /* ── Screen 1: Start ── */
 // Some browsers restore form field state (including checkboxes) across a
@@ -927,27 +952,45 @@ function thumbMarkup(kind){
 $('thumb-boundaries').innerHTML = thumbMarkup('boundaries');
 $('thumb-connection').innerHTML = thumbMarkup('connection');
 
-function positionThumb(input, thumbSvg){
+function positionThumb(input, thumbSvg, trackVisual){
   const min = +input.min, max = +input.max, val = +input.value;
   const pct = (val-min)/(max-min);
   // input has direction:ltr, so 0% is physically on the left of the track regardless of page RTL
-  const trackRect = input.getBoundingClientRect();
+  const trackRect = trackVisual.getBoundingClientRect();
   const wrapRect = input.parentElement.getBoundingClientRect();
   const thumbW = 34;
   const usableW = trackRect.width - thumbW;
   const x = (trackRect.left - wrapRect.left) + thumbW/2 + pct*usableW;
+  const y = (trackRect.top - wrapRect.top) + trackRect.height/2;
   thumbSvg.style.left = x + 'px';
+  thumbSvg.style.top = y + 'px';
   thumbSvg.style.transform = 'translate(-50%,-50%)';
 }
-function wireSlider(inputId, thumbId){
-  const input = $(inputId), thumb = $(thumbId);
-  const reposition = ()=>positionThumb(input, thumb);
+const ARROW_KEYS = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
+function wireSlider(inputId, thumbId, trackId){
+  const input = $(inputId), thumb = $(thumbId), track = $(trackId);
+  const reposition = ()=>positionThumb(input, thumb, track);
   input.addEventListener('input', reposition);
   window.addEventListener('resize', reposition);
+  // Custom step sizes: 5 per arrow press, 20 with Shift. The input is
+  // forced direction:ltr (so low=left/high=right visually, matching the
+  // endpoint labels) -- ArrowRight/Up increase and ArrowLeft/Down
+  // decrease, exactly like a normal LTR slider, regardless of the page's
+  // own RTL direction.
+  input.addEventListener('keydown', e=>{
+    if(!ARROW_KEYS.includes(e.key)) return;
+    e.preventDefault();
+    const step = e.shiftKey ? 20 : 5;
+    const delta = (e.key==='ArrowRight' || e.key==='ArrowUp') ? step : -step;
+    const min = +input.min, max = +input.max;
+    const v = Math.max(min, Math.min(max, +input.value + delta));
+    input.value = v;
+    input.dispatchEvent(new Event('input', { bubbles:true }));
+  });
   return reposition;
 }
-const repositionBoundaries = wireSlider('slider-boundaries','thumb-boundaries');
-const repositionConnection = wireSlider('slider-connection','thumb-connection');
+const repositionBoundaries = wireSlider('slider-boundaries','thumb-boundaries','track-boundaries');
+const repositionConnection = wireSlider('slider-connection','thumb-connection','track-connection');
 
 function buildRoute(){
   const svg = $('route-svg');
@@ -989,6 +1032,7 @@ function renderQ(){
   $('slider-connection').value = saved ? saved.connection : 50;
   repositionBoundaries(); repositionConnection();
   updateRoute();
+  $('slider-boundaries').focus();
 }
 
 function storeCurrent(){
@@ -1015,6 +1059,36 @@ $('btn-back').addEventListener('click', ()=>{
   storeCurrent();
   S.idx--;
   renderQ();
+});
+
+/* ── Keyboard: global shortcuts ── */
+document.addEventListener('keydown', e=>{
+  // Escape closes an open bottom sheet and returns focus to its opener
+  if(e.key==='Escape' && $('sheet').classList.contains('open')){
+    closeSheet();
+    return;
+  }
+
+  if(!$('screen-quiz').classList.contains('active')) return;
+
+  const active = document.activeElement;
+  const isButton = active && active.tagName==='BUTTON';
+
+  // Enter advances to the next question, unless a button already owns
+  // Enter natively (avoids double-advancing when btn-next/btn-back is focused)
+  if(e.key==='Enter' && !isButton){
+    e.preventDefault();
+    $('btn-next').click();
+  }
+
+  // Backspace goes back a question, as long as the user isn't typing in a field
+  if(e.key==='Backspace'){
+    const typingInField = active && active.tagName==='INPUT' && (active.type==='text' || active.type==='email');
+    if(!typingInField && S.idx>0){
+      e.preventDefault();
+      $('btn-back').click();
+    }
+  }
 });
 
 function finalizeScores(){
@@ -1116,6 +1190,12 @@ function renderDots(containerId, level, cls){
 }
 
 /* ── Email gate / webhook ── */
+$('inp-email').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    $('btn-submit').click();
+  }
+});
 $('btn-submit').addEventListener('click', async ()=>{
   const name = $('inp-name').value.trim();
   const email = $('inp-email').value.trim();
