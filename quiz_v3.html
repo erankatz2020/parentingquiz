@@ -43,6 +43,7 @@ em,i{font-style:normal;}
   min-height:100vh;
   position:relative;
   padding-bottom:96px;
+  perspective:1000px;
 }
 
 .screen{display:none;}
@@ -276,14 +277,31 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   background:var(--card);
   border:2px solid var(--coral);
   border-radius:18px;
-  padding:24px 20px;
+  padding:0 20px 24px;
   margin:0 18px 18px;
   text-align:center;
+  overflow:hidden;
 }
-.persona-card.show{display:block;animation:fadeUp .5s var(--ease);}
+.persona-card.show{display:block;animation:cardFlip .6s var(--ease);}
+@keyframes cardFlip{
+  from{opacity:0;transform:rotateY(85deg);}
+  to{opacity:1;transform:rotateY(0deg);}
+}
+.persona-char-area{
+  margin:0 -20px 18px;
+  height:150px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.persona-char-area img{
+  max-height:100%;max-width:100%;
+  object-fit:contain;
+}
+.persona-char-fallback{width:84px;height:84px;}
 .persona-name{font-family:var(--font-display);font-weight:900;font-size:1.5rem;color:var(--navy);line-height:1.15;}
 .persona-name em{color:var(--coral);}
 .persona-style{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);margin-top:5px;}
+.persona-tagline{font-size:.69rem;color:var(--ink-soft);margin-top:7px;line-height:1.4;}
 
 .strength-rows{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
 .strength-row{display:flex;align-items:center;gap:10px;justify-content:center;}
@@ -502,8 +520,10 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
 
     <div class="persona-card" id="teaser-persona-card">
+      <div class="persona-char-area" id="t-char-area"></div>
       <div class="persona-name" id="t-name"></div>
       <div class="persona-style" id="t-style"></div>
+      <div class="persona-tagline" id="t-tagline"></div>
       <div class="strength-rows">
         <div class="strength-row">
           <span class="strength-lbl">חום</span>
@@ -546,8 +566,10 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
 
     <div class="persona-card show" id="results-persona-card">
+      <div class="persona-char-area" id="r-char-area"></div>
       <div class="persona-name" id="r-name2"></div>
       <div class="persona-style" id="r-style2"></div>
+      <div class="persona-tagline" id="r-tagline"></div>
       <div class="strength-rows">
         <div class="strength-row">
           <span class="strength-lbl">חום</span>
@@ -661,6 +683,39 @@ function toSVG(v){ return 40+((v+10)/20)*320; }
 function toSVGx(v){ return toSVG(v); }
 function strengthLevel(score){
   return Math.min(5, Math.max(1, Math.round(((score+10)/20)*4) + 1));
+}
+
+/* ── Persona character visuals ── */
+const PERSONA_VISUALS = {
+  navigating_captain: { bg:'#CFE3E1', img:'assets/characters/captain.png', tagline:'יד אחת על ההגה, יד אחת על הלב' },
+  rigid_officer:       { bg:'#D5DCE4', img:'assets/characters/officer.png', tagline:'הספינה תמיד בזמן. אבל מי מקשיב לצוות?' },
+  buddy_sailor:        { bg:'#F7D6CC', img:'assets/characters/buddy.png',   tagline:'כולם רוצים להפליג איתו, אבל לאן?' },
+  lost_sailor:         { bg:'#DCE3E6', img:'assets/characters/lost.png',    tagline:'בערפל כרגע. אבל הפנס עוד דולק' }
+};
+const FALLBACK_COMPASS_SVG = `
+  <svg class="persona-char-fallback" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="42" cy="42" r="38" fill="#fff" stroke="var(--sea)" stroke-width="3"/>
+    <circle cx="42" cy="42" r="30" fill="none" stroke="var(--border)" stroke-width="1"/>
+    <polygon points="42,10 48,42 42,50 36,42" fill="var(--coral)"/>
+    <polygon points="74,42 42,48 42,36 10,42" fill="var(--sea)" opacity="0.85"/>
+    <circle cx="42" cy="42" r="5" fill="var(--navy)"/>
+  </svg>`;
+function renderPersonaCard(persona, areaId, nameId, styleId, taglineId){
+  const p = PERSONAS[persona];
+  const v = PERSONA_VISUALS[persona];
+  $(nameId).innerHTML = p.nameHTML;
+  $(styleId).textContent = p.baumrind;
+  $(taglineId).textContent = v.tagline;
+  const area = $(areaId);
+  area.style.background = v.bg;
+  area.innerHTML = '';
+  const img = document.createElement('img');
+  img.alt = '';
+  img.addEventListener('error', ()=>{
+    area.innerHTML = FALLBACK_COMPASS_SVG;
+  }, { once:true });
+  img.src = v.img;
+  area.appendChild(img);
 }
 
 /* ── Bottom sheet ── */
@@ -877,8 +932,7 @@ function buildTeaser(){
   });
 
   setTimeout(()=>{
-    $('t-name').innerHTML = p.nameHTML;
-    $('t-style').textContent = p.baumrind;
+    renderPersonaCard(S.persona, 't-char-area', 't-name', 't-style', 't-tagline');
     $('t-desc').textContent = t(p.teaser);
     renderDots('dots-w', strengthLevel(w), 'w');
     renderDots('dots-s', strengthLevel(s), 's');
@@ -922,8 +976,7 @@ function buildResults(){
   const {w,s} = S.scores, p = P[S.persona];
   $('r-name-display').innerHTML = p.nameHTML;
   $('r-style-display').textContent = p.baumrind;
-  $('r-name2').innerHTML = p.nameHTML;
-  $('r-style2').textContent = p.baumrind;
+  renderPersonaCard(S.persona, 'r-char-area', 'r-name2', 'r-style2', 'r-tagline');
   renderDots('r-dots-w', strengthLevel(w), 'w');
   renderDots('r-dots-s', strengthLevel(s), 's');
 
