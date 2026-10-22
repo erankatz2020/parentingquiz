@@ -131,6 +131,30 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   background:linear-gradient(0deg, var(--sand) 60%, rgba(246,239,228,0));
   z-index:30;
 }
+.cookie-banner{
+  display:none;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:10px;
+  box-shadow:0 4px 16px rgba(29,43,58,0.12);
+}
+.cookie-banner.show{display:block;}
+.cookie-banner p{
+  font-size:13px; line-height:1.5; color:var(--ink-soft);
+  margin-bottom:10px;
+}
+.cookie-banner-actions{display:flex; gap:10px;}
+.cookie-banner-actions button{
+  flex:1; min-height:40px;
+  border-radius:10px;
+  font-family:var(--font-body);
+  font-size:14px; font-weight:700;
+  cursor:pointer; border:none;
+}
+#btn-cookie-accept{background:var(--coral); color:#fff;}
+#btn-cookie-decline{background:var(--sand); color:var(--ink-soft); border:1px solid var(--border);}
 .btn-main{
   display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;min-height:52px;
@@ -608,6 +632,13 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
 
     <div class="pinned-wrap">
+      <div class="cookie-banner" id="cookie-banner">
+        <p>אנחנו משתמשים בעוגיות כדי להבין איך משתמשים בשאלון ולשפר אותו. <a href="https://www.theparentingmap.com/privacy-policy/" target="_blank" rel="noopener" class="link-btn">מדיניות הפרטיות</a></p>
+        <div class="cookie-banner-actions">
+          <button type="button" id="btn-cookie-accept">אישור</button>
+          <button type="button" id="btn-cookie-decline">לא תודה</button>
+        </div>
+      </div>
       <div class="start-btn-wrap">
         <div class="start-tooltip" id="start-tooltip" role="tooltip"></div>
         <button id="btn-start" class="btn-main" aria-disabled="true" aria-describedby="start-tooltip">
@@ -865,11 +896,11 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     <div class="cta-block">
       <div class="cta-item">
         <p class="cta-body">שיחת ניווט הורי של 90 דקות עם ד"ר ערן כ"ץ, לחשוב ביחד על הדפוסים שלכם ולבנות כלים אמיתיים.</p>
-        <a href="https://www.theparentingmap.com/navigate" class="cta-link" target="_blank">לפרטים ותיאום שיחה ←</a>
+        <a href="https://www.theparentingmap.com/navigate" class="cta-link" id="cta-session" target="_blank">לפרטים ותיאום שיחה ←</a>
       </div>
       <div class="cta-item">
         <p class="cta-body">רוצים ללמוד בקצב שלכם? קורס מפת ההורות מלמד את הכלים המרכזיים לסגנון הורות מיטיב.</p>
-        <a href="https://www.theparentingmap.com/mapcourse" class="cta-link" target="_blank">לפרטים על הקורס ←</a>
+        <a href="https://www.theparentingmap.com/mapcourse" class="cta-link" id="cta-course" target="_blank">לפרטים על הקורס ←</a>
       </div>
     </div>
 
@@ -932,6 +963,65 @@ const S = {
   name:'', email:''
 };
 
+/* ── Analytics ──────────────────────────────────────────────────────────
+   Nothing here ever loads a third-party script or fires an event unless
+   the user has accepted the cookie banner. trackEvent()/trackMeta() are
+   always safe to call (no-ops with no analytics loaded), and never take
+   names, emails or any other personal data as parameters -- only
+   age_group, voice, persona, question_number, cta and method values. */
+const ANALYTICS_DEBUG = new URLSearchParams(location.search).get('debug') === '1';
+const GA4_ID = 'G-DLN8R7LF4H';
+const CLARITY_ID = 'z1k249rnjh';
+const META_PIXEL_ID = '460591067725109';
+
+function trackEvent(name, params){
+  params = params || {};
+  if(ANALYTICS_DEBUG) console.log('[analytics] GA4:', name, params);
+  if(window.gtag) window.gtag('event', name, params);
+}
+function trackMeta(name, params){
+  params = params || {};
+  if(ANALYTICS_DEBUG) console.log('[analytics] Meta:', name, params);
+  if(window.fbq) window.fbq('track', name, params);
+}
+
+function loadAnalyticsScripts(){
+  // GA4
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', GA4_ID);
+  const ga = document.createElement('script');
+  ga.async = true;
+  ga.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`;
+  document.head.appendChild(ga);
+
+  // Microsoft Clarity
+  (function(c,l,a,r,i,t,y){
+    c[a] = c[a] || function(){ (c[a].q = c[a].q || []).push(arguments); };
+    t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
+    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+  })(window, document, 'clarity', 'script', CLARITY_ID);
+  // Mask every input field's recorded content (name/email included), on
+  // top of whatever project-level masking is set in the Clarity dashboard.
+  document.querySelectorAll('input').forEach(el => el.setAttribute('data-clarity-mask', 'true'));
+  window.clarity('set', 'maskTextInputs', true);
+
+  // Meta Pixel
+  (function(f,b,e,v,n,t,s){
+    if(f.fbq) return;
+    n = f.fbq = function(){ n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+    if(!f._fbq) f._fbq = n;
+    n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+    t = b.createElement(e); t.async = true; t.src = v;
+    s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+  })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+  window.fbq('init', META_PIXEL_ID);
+  window.fbq('track', 'PageView');
+
+  if(ANALYTICS_DEBUG) console.log('[analytics] scripts loaded (consent accepted)');
+}
+
 function getCharSuffix(){
   if(S.gender==='m' || S.gender==='f') return S.gender;
   if(!S.charSuffix) S.charSuffix = Math.random()<0.5 ? 'm' : 'f';
@@ -941,6 +1031,26 @@ function getCharSuffix(){
 const t = o => o?.[S.gender] ?? o?.n ?? '';
 const $ = id => document.getElementById(id);
 const P = PERSONAS;
+
+function initCookieConsent(){
+  const choice = localStorage.getItem('cookieConsent');
+  if(choice === 'accepted'){
+    loadAnalyticsScripts();
+    return;
+  }
+  if(choice === 'declined') return;
+  $('cookie-banner').classList.add('show');
+}
+$('btn-cookie-accept').addEventListener('click', ()=>{
+  localStorage.setItem('cookieConsent', 'accepted');
+  $('cookie-banner').classList.remove('show');
+  loadAnalyticsScripts();
+});
+$('btn-cookie-decline').addEventListener('click', ()=>{
+  localStorage.setItem('cookieConsent', 'declined');
+  $('cookie-banner').classList.remove('show');
+});
+initCookieConsent();
 
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1137,6 +1247,7 @@ $('btn-start').addEventListener('click', ()=>{
   S.idx = 0;
   S.answers = new Array(S.questions.length).fill(null);
   S.scores = {w:0,s:0};
+  trackEvent('quiz_start', { age_group:S.age, voice:S.gender });
   pushHistoryState('screen-quiz', {qIdx:0});
   show('screen-quiz');
   renderQ();
@@ -1233,6 +1344,7 @@ function updateRoute(){
 function renderQ(){
   if(!$('route-svg').innerHTML) buildRoute();
   const q = S.questions[S.idx], n = S.idx+1, tot = S.questions.length;
+  trackEvent('question_view', { question_number:n });
   $('q-count').textContent = `רגע ${n} מתוך ${tot}`;
   $('btn-back').classList.toggle('show', S.idx>0);
   $('situation-text').textContent = t(q.situation);
@@ -1269,6 +1381,9 @@ $('btn-next').addEventListener('click', ()=>{
     $('slider-warning').classList.add('show');
     $('next-label').textContent = 'להמשיך בכל זאת';
     return;
+  }
+  if(!S.touchedB && !S.touchedC){
+    trackEvent('question_skipped', { question_number:S.idx+1 });
   }
   storeCurrent();
   if(S.idx < S.questions.length-1){
@@ -1422,6 +1537,7 @@ function buildTeaser(){
   S.persona = getPersona(w,s);
   S.secondary = getSecondary(w,s);
   const p = P[S.persona];
+  trackEvent('quiz_complete', { persona:S.persona });
 
   renderPersonaCard(S.persona, 't-char-area', 't-name', 't-style', 't-tagline');
   $('t-desc').textContent = t(p.teaser);
@@ -1469,6 +1585,8 @@ $('btn-submit').addEventListener('click', async ()=>{
       body:JSON.stringify({name:name,email:email,persona:S.persona,ageGroup:S.age})
     });
   }catch(e){ console.warn('subscribe error:', e); }
+  trackEvent('email_submit', { persona:S.persona, age_group:S.age });
+  trackMeta('Lead', {});
   st.textContent='';
   $('btn-submit').disabled = false;
   buildResults();
@@ -1603,12 +1721,15 @@ $('btn-share').addEventListener('click', ()=>{
     const text = `יצא לי ${title} בשאלון "איזה הורה אני בעצם?" 🧭 ואתם? https://quiz.theparentingmap.com/`;
 
     if(navigator.canShare && navigator.canShare({ files:[shareCardFile] })){
+      trackEvent('share_click', { persona:S.persona, method:'share_sheet' });
       navigator.share({ files:[shareCardFile], title:'איזה הורה אני בעצם?', text }).catch(()=>{ /* user cancelled */ });
     } else {
+      trackEvent('share_click', { persona:S.persona, method:'download' });
       downloadBlob(shareCardFile, 'parenting-profile.png');
       showToast('התמונה נשמרה, אפשר לשתף אותה');
     }
   } else {
+    trackEvent('share_click', { persona:S.persona, method:'copy_link' });
     navigator.clipboard.writeText('https://quiz.theparentingmap.com/')
       .then(()=>showToast('הקישור הועתק'))
       .catch(()=>showToast('לא ניתן להעתיק'));
@@ -1624,6 +1745,7 @@ function showToast(msg, duration){
 
 /* ── Retake ── */
 function resetQuiz(){
+  trackEvent('retake', {});
   Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
@@ -1634,6 +1756,15 @@ function resetQuiz(){
   show('screen-start');
 }
 $('btn-retake').addEventListener('click', resetQuiz);
+
+$('cta-session').addEventListener('click', ()=>{
+  trackEvent('cta_click', { cta:'session' });
+  trackMeta('ViewContent', { content_name:'session' });
+});
+$('cta-course').addEventListener('click', ()=>{
+  trackEvent('cta_click', { cta:'course' });
+  trackMeta('ViewContent', { content_name:'course' });
+});
 </script>
 </body>
 </html>
