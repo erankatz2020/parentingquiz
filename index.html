@@ -561,117 +561,212 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   .persona-card.show{animation:none;}
 }
 
-/* ── flip card (teaser reveal) ── */
-.card-reveal-prompt{
-  text-align:center; font-size:14px; font-weight:700; color:var(--sea);
-  margin:0 18px 10px; transition:opacity .2s var(--ease);
+/* ── treasure chest (teaser reveal) ── */
+.chest-reveal-title{
+  font-family:var(--font-heading-game); font-weight:800;
+  text-align:center; font-size:1.25rem; color:var(--navy);
+  margin:0 18px 4px;
 }
-.card-reveal-prompt.hide{display:none;}
-.flip-card-scene{
-  position:relative;
+.chest-reveal-subtitle{
+  text-align:center; font-size:14px; color:var(--sea); font-weight:700;
+  margin:0 18px 14px; min-height:18px;
+  transition:opacity .2s var(--ease);
+}
+
+/* Stage pop-in: its own isolated animation, on its own wrapper element --
+   never touched by anything else, so it can never collide with another
+   rule on the same property. */
+.chest-stage-wrap{
+  display:flex; justify-content:center;
   margin:0 18px 18px;
-  perspective:1400px;
-  -webkit-perspective:1400px;
+  animation:chestStagePopIn .35s cubic-bezier(.34,1.56,.64,1) both;
 }
-.flip-card{
-  all:unset;
-  box-sizing:border-box;
-  display:block;
-  width:100%;
-  position:relative;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  border-radius:18px;
-  /* .flip-card-back's rotateY needs perspective from .flip-card-scene (its
-     grandparent) to reach it -- that only happens if this element, its
-     direct parent, preserves the 3D context instead of flattening it
-     (the default, which `all:unset` above also resets to). Without this,
-     the rotation still computes correctly at its 0/180deg endpoints (a
-     pure flip has no depth either way) but renders with no perspective,
-     and some mobile compositors (notably Android Chrome) then resolve the
-     transition instantly instead of animating it, rather than merely
-     rendering it "flat". */
-  transform-style:preserve-3d;
-  -webkit-transform-style:preserve-3d;
-}
-.flip-card:focus-visible{outline:3px solid var(--coral);outline-offset:4px;}
-.flip-card-front.persona-card{
-  position:relative;
-  margin:0;
-  animation:none; /* the flip itself is the reveal -- no extra pop-in on top of it */
-}
-.flip-card-back{
-  position:absolute; inset:0;
-  background:var(--sea);
-  border:2px solid var(--sand);
-  border-radius:18px;
-  display:flex; align-items:center; justify-content:center;
-  backface-visibility:hidden; -webkit-backface-visibility:hidden;
-  transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
-  transform:rotateY(0deg);
-  transform-origin:center;
-  transition:transform .8s cubic-bezier(.3,1.25,.5,1);
-}
-.flip-card.flipped .flip-card-back{
-  transform:rotateY(180deg);
-}
-/* The idle wiggle animates on this separate inner wrapper, not on
-   .flip-card-back itself: a CSS animation and a CSS transition racing on
-   the same property of the same element means the animation wins outright
-   while it's running, and stopping it (animation:none) in the very same
-   style change that also changes the transitioning property is exactly
-   the interruption case mobile Chrome doesn't reliably animate -- it
-   resolves straight to the end value instead of transitioning, which is
-   what made the flip look instant. Confirmed via Playwright: with the
-   wiggle sharing .flip-card-back's transform, the sampled transform was
-   identical across every frame from 0-900ms after the tap; moving the
-   wiggle here made it interpolate through ~49 distinct frames instead. */
-.card-back-inner{
-  width:100%; height:100%;
-  display:flex; align-items:center; justify-content:center;
-  animation:cardIdleWiggle 3s ease-in-out infinite;
-}
-.flip-card.flipped .card-back-inner{animation:none;}
-.card-back-emblem{width:72px;height:72px;}
-@keyframes cardIdleWiggle{
-  0%,88%,100%{transform:rotateZ(0deg);}
-  90%{transform:rotateZ(-1.4deg);}
-  93%{transform:rotateZ(1.4deg);}
-  96%{transform:rotateZ(-0.7deg);}
-}
-.card-shine{
-  position:absolute; top:0; bottom:0; left:-60%; width:45%;
-  background:linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
-  pointer-events:none; opacity:0;
-}
-.card-shine.sweep{
-  opacity:1;
-  animation:cardShineSweep .5s ease-out forwards;
-}
-@keyframes cardShineSweep{
-  from{left:-60%; opacity:1;}
-  to{left:120%; opacity:0;}
-}
-.card-sparkle{
-  position:absolute; color:#E8C547; font-size:16px;
-  opacity:0; pointer-events:none; z-index:2;
-}
-.card-sparkle.s1{top:-6px; right:14%;}
-.card-sparkle.s2{bottom:10%; left:-8px;}
-.card-sparkle.s3{top:30%; right:-8px;}
-.card-sparkle.pop{animation:cardSparklePop .7s ease-out forwards;}
-@keyframes cardSparklePop{
-  0%{opacity:0; transform:scale(.3) rotate(0deg);}
-  35%{opacity:1; transform:scale(1.15) rotate(15deg);}
-  100%{opacity:0; transform:scale(.8) rotate(25deg);}
+@keyframes chestStagePopIn{
+  from{opacity:0; transform:scale(.92);}
+  to{opacity:1; transform:scale(1);}
 }
 @media (prefers-reduced-motion: reduce){
-  .card-back-inner{animation:none;}
-  .flip-card-back{transition:opacity .25s var(--ease);}
-  .flip-card.flipped .flip-card-back{transform:none; opacity:0; pointer-events:none;}
+  .chest-stage-wrap{animation:none;}
 }
-.flip-card.no-anim .flip-card-back{transition:none !important;}
-.flip-card.no-anim .card-back-inner{animation:none !important;}
+
+.chest-stage{
+  all:unset;
+  box-sizing:border-box;
+  position:relative;
+  display:block;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  --stage-w:clamp(220px, 72vw, 320px);
+  --u:calc(var(--stage-w) / 200px); /* unitless ratio -- dividing by 200px (not 200) is what makes calc(var(--u) * Npx) valid everywhere below */
+  width:var(--stage-w);
+  height:calc(var(--u) * 262px);
+  min-width:44px; min-height:44px;
+}
+.chest-stage:focus-visible{outline:3px solid var(--coral); outline-offset:6px; border-radius:16px;}
+
+/* Hard rule: no element below has both an animation and a transition on the
+   same property. .chest-rattle only ever animates (never transitions) --
+   it has no `transition` declared anywhere, on purpose, so the open-state
+   .lidFront/.innerLid/.chest-card transitions (each on its OWN separate
+   element) are never fighting a running animation for control of the same
+   property the way the previous flip-card's idle wiggle did. */
+.chest-rattle{
+  position:absolute; inset:0;
+  transform-origin:50% 100%;
+  animation:chestRattle 3.2s ease-in-out infinite;
+}
+.chest-stage.open .chest-rattle{animation:none;}
+@keyframes chestRattle{
+  0%,86%,100%{transform:rotate(0deg);}
+  89%{transform:rotate(-3deg);}
+  91.5%{transform:rotate(3deg);}
+  94%{transform:rotate(-1.6deg);}
+  96%{transform:rotate(0deg);}
+}
+@media (prefers-reduced-motion: reduce){
+  .chest-rattle{animation:none;}
+}
+
+.chest-back-svg, .chest-front-svg{
+  position:absolute; left:50%; bottom:0;
+  width:calc(var(--u) * 200px); height:calc(var(--u) * 170px);
+  transform:translateX(-50%);
+  display:block;
+}
+.chest-back-svg{z-index:1;}
+.chest-front-svg{z-index:3;}
+
+.cardclip{
+  position:absolute; left:0; top:0;
+  width:100%; height:calc(var(--u) * 249px);
+  overflow:hidden;
+  z-index:2;
+  pointer-events:none;
+}
+.chest-card{
+  position:absolute; left:50%; top:0;
+  width:calc(var(--u) * 124px); height:calc(var(--u) * 150px);
+  transform:translate(-50%, calc(var(--u) * 249px));
+  opacity:0;
+  border-radius:calc(var(--u) * 10px);
+  overflow:hidden;
+  box-shadow:0 4px 14px rgba(29,43,58,.25);
+  transition:transform .75s cubic-bezier(.3,1.3,.5,1) .55s, opacity .15s linear .55s;
+}
+.chest-stage.open .chest-card{
+  transform:translate(-50%, calc(var(--u) * 40px));
+  opacity:1;
+}
+.chest-card-inner{
+  width:100%; height:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  padding:calc(var(--u) * 6px) calc(var(--u) * 6px) calc(var(--u) * 8px);
+  text-align:center;
+}
+.chest-card-char{
+  width:100%; height:calc(var(--u) * 64px);
+  display:flex; align-items:center; justify-content:center;
+}
+.chest-card-char img{max-width:88%; max-height:100%; object-fit:contain;}
+.chest-card-title{
+  font-family:var(--font-heading-game); font-weight:800;
+  font-size:max(12px, calc(var(--u) * 11.5px));
+  color:var(--navy); line-height:1.15; margin-top:calc(var(--u) * 4px);
+}
+.chest-card-title em{color:var(--coral); font-style:normal;}
+.chest-card-tagline{
+  font-size:max(12px, calc(var(--u) * 9px));
+  color:var(--ink-soft); line-height:1.25; margin-top:calc(var(--u) * 3px);
+}
+
+.glow{
+  position:absolute; left:50%; top:calc(var(--u) * 40px);
+  width:calc(var(--u) * 260px); height:calc(var(--u) * 260px);
+  transform:translate(-50%,-50%) scale(.4);
+  opacity:0;
+  pointer-events:none;
+  z-index:0;
+  transition:opacity .5s var(--ease) .3s, transform .7s var(--ease) .3s;
+}
+.chest-stage.open .glow{opacity:1; transform:translate(-50%,-50%) scale(1);}
+.glow-halo{
+  position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle, rgba(232,199,112,.85) 0, rgba(232,199,112,.28) 38%, transparent 66%);
+}
+.glow-rays{
+  position:absolute; inset:0; border-radius:50%;
+  background:repeating-conic-gradient(rgba(232,199,112,.55) 0 8deg, transparent 8deg 16deg);
+  -webkit-mask-image:radial-gradient(circle, #000 8%, transparent 62%);
+  mask-image:radial-gradient(circle, #000 8%, transparent 62%);
+}
+.chest-stage.open .glow-rays{animation:glowRaysSpin 14s linear infinite;}
+@keyframes glowRaysSpin{ to{transform:rotate(360deg);} }
+
+.chest-sparkle{
+  position:absolute; color:#E8C547; font-size:calc(var(--u) * 13px);
+  opacity:0; pointer-events:none; z-index:4;
+}
+.chest-sparkle.sp1{top:2%; left:8%;}
+.chest-sparkle.sp2{top:-4%; right:20%;}
+.chest-sparkle.sp3{top:28%; left:-6%;}
+.chest-sparkle.sp4{top:24%; right:-6%;}
+.chest-sparkle.sp5{top:55%; left:2%;}
+.chest-sparkle.sp6{top:50%; right:4%;}
+.chest-stage.open .chest-sparkle{
+  animation:chestSparklePop 1s ease-out .7s forwards;
+}
+@keyframes chestSparklePop{
+  0%{opacity:0; transform:scale(.2) translateY(0);}
+  40%{opacity:1; transform:scale(1.3) translateY(-6px);}
+  100%{opacity:0; transform:scale(1) translateY(-10px);}
+}
+
+/* back-SVG inner parts (exact class names from the provided markup) */
+.innerLid{
+  transform-box:fill-box; transform-origin:50% 100%;
+  transform:scaleY(.02);
+  transition:transform .4s cubic-bezier(.3,1.4,.5,1) .26s;
+}
+.chest-stage.open .innerLid{transform:scaleY(1);}
+.inGlow{
+  opacity:0;
+  transition:opacity .4s var(--ease) .3s;
+}
+.chest-stage.open .inGlow{opacity:.9;}
+
+/* front-SVG lid */
+.lidFront{
+  transform-box:fill-box; transform-origin:50% 100%;
+  /* .36s rather than a bare .28s: at 60fps a 280ms transition tops out
+     around 17-19 actually-distinct rendered frames, which is cutting it
+     close to flat/instant-looking on some displays -- .36s keeps the same
+     quick ease-in feel with comfortable headroom to render as a visibly
+     smooth close rather than a near-snap. */
+  transition:transform .36s ease-in;
+}
+.chest-stage.open .lidFront{transform:scaleY(.02);}
+
+@media (prefers-reduced-motion: reduce){
+  .lidFront{transition:opacity .4s var(--ease);}
+  .chest-stage.open .lidFront{transform:none; opacity:0;}
+  .innerLid{transition:opacity .4s var(--ease); transform:none; opacity:0;}
+  .chest-stage.open .innerLid{opacity:1;}
+  .inGlow{transition:opacity .4s var(--ease);}
+  .glow{transition:opacity .4s var(--ease); transform:translate(-50%,-50%);}
+  .chest-stage.open .glow{transform:translate(-50%,-50%);}
+  .chest-stage.open .glow-rays{animation:none;}
+  .chest-sparkle{display:none;}
+  .chest-card{transition:opacity .4s var(--ease); transform:translate(-50%, calc(var(--u) * 40px));}
+  .chest-stage.open .chest-card{transform:translate(-50%, calc(var(--u) * 40px)); opacity:1;}
+}
+.chest-stage.no-anim .lidFront,
+.chest-stage.no-anim .innerLid,
+.chest-stage.no-anim .inGlow,
+.chest-stage.no-anim .glow,
+.chest-stage.no-anim .chest-card{transition:none !important;}
+.chest-stage.no-anim .chest-sparkle{animation:none !important;}
+.chest-stage.no-anim .glow-rays{animation:none !important;}
+
 
 .persona-char-area{
   margin:0 -20px 18px;
@@ -1092,43 +1187,44 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   <div id="screen-teaser" class="screen">
     <div class="pad" style="padding-bottom:0;height:8px;"></div>
 
-    <p class="card-reveal-prompt" id="card-reveal-prompt">הכרטיס שלכם מוכן</p>
+    <h2 class="chest-reveal-title" id="chest-title">מצאתם תיבה בדרך</h2>
+    <p class="chest-reveal-subtitle" id="chest-subtitle">הפרופיל שלכם מחכה בפנים</p>
 
-    <div class="flip-card-scene" id="flip-card-scene">
-      <button type="button" class="flip-card" id="flip-card" aria-label="חשפו את הכרטיס">
-        <span class="card-sparkle s1" aria-hidden="true">✦</span>
-        <span class="card-sparkle s2" aria-hidden="true">✦</span>
-        <span class="card-sparkle s3" aria-hidden="true">✦</span>
-        <div class="flip-card-front persona-card show" id="teaser-persona-card" aria-hidden="true">
-          <div class="card-shine" id="card-shine" aria-hidden="true"></div>
-          <div class="persona-char-area" id="t-char-area"></div>
-          <div class="persona-name" id="t-name"></div>
-          <div class="persona-style" id="t-style"></div>
-          <div class="persona-tagline" id="t-tagline"></div>
-          <div class="strength-rows">
-            <div class="strength-row">
-              <span class="strength-lbl">חום</span>
-              <div class="dots" id="dots-w"></div>
-            </div>
-            <div class="strength-row">
-              <span class="strength-lbl">גבולות</span>
-              <div class="dots" id="dots-s"></div>
+    <div class="chest-stage-wrap">
+      <button type="button" class="chest-stage" id="chest-stage" aria-label="פתחו את התיבה">
+        <div class="glow" aria-hidden="true">
+          <div class="glow-halo"></div>
+          <div class="glow-rays"></div>
+        </div>
+        <div class="chest-rattle" id="chest-rattle">
+          <svg class="chest-back-svg" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <ellipse cx="100" cy="160" rx="78" ry="8" fill="#1D2B3A" opacity=".18"/>
+            <g class="innerLid"><path d="M34 76V42Q34 16 100 16Q166 16 166 42V76Z" fill="#5A3B24" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/><path d="M44 72V44Q44 28 100 28Q156 28 156 44V72Z" fill="#6B4429"/><rect x="52" y="34" width="12" height="42" fill="#E8C770" stroke="#1D2B3A" stroke-width="2"/><rect x="136" y="34" width="12" height="42" fill="#E8C770" stroke="#1D2B3A" stroke-width="2"/></g>
+            <ellipse cx="100" cy="86" rx="66" ry="11" fill="#2A1A10" stroke="#1D2B3A" stroke-width="2.5"/>
+            <ellipse class="inGlow" cx="100" cy="86" rx="56" ry="8" fill="#E8C770"/>
+          </svg>
+          <div class="cardclip">
+            <div class="chest-card" id="chest-card">
+              <div class="chest-card-inner" id="chest-card-inner" aria-hidden="true"></div>
             </div>
           </div>
+          <svg class="chest-front-svg" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M30 86H170V150Q170 157 163 157H37Q30 157 30 150Z" fill="#8A5A3A" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M32 106H168M32 126H168M32 144H168" stroke="#6B4429" stroke-width="2.5"/>
+            <rect x="52" y="86" width="14" height="71" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="134" y="86" width="14" height="71" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/>
+            <rect x="86" y="96" width="28" height="30" rx="5" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><circle cx="100" cy="108" r="4.5" fill="#1D2B3A"/><rect x="98" y="110" width="4" height="9" rx="1" fill="#1D2B3A"/>
+            <g class="lidFront"><path d="M30 86V62Q30 34 100 34Q170 34 170 62V86Z" fill="#9A6A43" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/><path d="M40 82V64Q40 46 100 46Q160 46 160 64V82Z" fill="none" stroke="#7A5233" stroke-width="2.5"/><rect x="52" y="46" width="14" height="40" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="134" y="46" width="14" height="40" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="86" y="76" width="28" height="14" rx="4" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/></g>
+          </svg>
         </div>
-        <div class="flip-card-back" aria-hidden="true">
-          <div class="card-back-inner">
-            <svg class="card-back-emblem" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="42" cy="42" r="34" fill="none" stroke="var(--sand)" stroke-width="2" stroke-dasharray="3 6"/>
-              <polygon points="42,12 48,42 42,72 36,42" fill="var(--sand)" opacity="0.9"/>
-              <polygon points="72,42 42,48 42,36 12,42" fill="var(--sand)" opacity="0.6"/>
-              <circle cx="42" cy="42" r="5" fill="var(--sand)"/>
-            </svg>
-          </div>
-        </div>
+        <span class="chest-sparkle sp1" aria-hidden="true">✦</span>
+        <span class="chest-sparkle sp2" aria-hidden="true">✧</span>
+        <span class="chest-sparkle sp3" aria-hidden="true">✦</span>
+        <span class="chest-sparkle sp4" aria-hidden="true">✧</span>
+        <span class="chest-sparkle sp5" aria-hidden="true">✦</span>
+        <span class="chest-sparkle sp6" aria-hidden="true">✧</span>
       </button>
     </div>
-    <div class="sr-only" aria-live="polite" id="card-reveal-announce"></div>
+    <div class="sr-only" aria-live="polite" id="chest-announce"></div>
 
     <p class="teaser-text card" id="t-desc" style="margin:0 18px 18px;"></p>
 
@@ -1148,7 +1244,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
     <div class="pinned-wrap">
       <button id="btn-submit" class="btn-main">
-        <span id="btn-submit-label">חשפו את הכרטיס</span><span>←</span>
+        <span id="btn-submit-label">פתחו את התיבה</span><span>←</span>
       </button>
     </div>
   </div>
@@ -1274,8 +1370,8 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   <div>UA: <span id="dbg-ua"></span></div>
   <div>userActivation.hasBeenActive: <span id="dbg-activation"></span></div>
   <div>last haptic: <span id="dbg-last-haptic">none yet</span></div>
-  <div>card flip transitionrun/transitionend: <span id="dbg-flip-events">0 / 0</span></div>
-  <div>shine animationstart: <span id="dbg-shine-events">0</span></div>
+  <div>chest lid transitionrun/transitionend: <span id="dbg-flip-events">0 / 0</span></div>
+  <div>glow rays animationstart: <span id="dbg-shine-events">0</span></div>
   <div>sparkle animationstart: <span id="dbg-sparkle-events">0</span></div>
   <button type="button" id="dbg-vibrate-test">בדיקת רטט</button>
   <span id="dbg-vibrate-result"></span>
@@ -1312,7 +1408,7 @@ const S = {
   scores:{w:0,s:0},
   persona:null, secondary:null,
   charSuffix:null,
-  cardFlipped:false,
+  chestOpened:false,
   name:'', email:''
 };
 
@@ -1417,7 +1513,7 @@ function loadAnalyticsScripts(){
    workaround via a hidden switch-styled checkbox toggled through its label
    from inside that same synchronous handler -- silently does nothing if
    it doesn't produce a tap. */
-const HAPTIC_PATTERNS = { tick:8, edge:15, confirm:[10,40,10] };
+const HAPTIC_PATTERNS = { tick:8, edge:15, confirm:[10,40,10], chestOpen:[15,60,25] };
 const HAPTIC_MIN_INTERVAL_MS = 80;
 let hapticLastFired = 0;
 let hapticLastCall = null; // {type, time, fired} -- read by the debug panel
@@ -1471,14 +1567,14 @@ function initDebugPanel(){
   document.getElementById('dbg-ua').textContent = navigator.userAgent;
 
   document.addEventListener('transitionrun', e=>{
-    if(e.target.classList && e.target.classList.contains('flip-card-back')){ DEBUG_COUNTS.flipRun++; updateDebugPanel(); }
+    if(e.target.classList && e.target.classList.contains('lidFront')){ DEBUG_COUNTS.flipRun++; updateDebugPanel(); }
   });
   document.addEventListener('transitionend', e=>{
-    if(e.target.classList && e.target.classList.contains('flip-card-back')){ DEBUG_COUNTS.flipEnd++; updateDebugPanel(); }
+    if(e.target.classList && e.target.classList.contains('lidFront')){ DEBUG_COUNTS.flipEnd++; updateDebugPanel(); }
   });
   document.addEventListener('animationstart', e=>{
-    if(e.target.id === 'card-shine'){ DEBUG_COUNTS.shineStart++; updateDebugPanel(); }
-    if(e.target.classList && e.target.classList.contains('card-sparkle')){ DEBUG_COUNTS.sparkleStart++; updateDebugPanel(); }
+    if(e.target.classList && e.target.classList.contains('glow-rays')){ DEBUG_COUNTS.shineStart++; updateDebugPanel(); }
+    if(e.target.classList && e.target.classList.contains('chest-sparkle')){ DEBUG_COUNTS.sparkleStart++; updateDebugPanel(); }
   });
 
   document.getElementById('dbg-vibrate-test').addEventListener('click', ()=>{
@@ -2260,75 +2356,105 @@ function buildTeaser(){
   const p = P[S.persona];
   trackEvent('quiz_complete', { persona:S.persona });
 
-  renderPersonaCard(S.persona, 't-char-area', 't-name', 't-style', 't-tagline');
   $('t-desc').textContent = t(p.teaser);
-  renderDots('dots-w', strengthLevel(w), 'w');
-  renderDots('dots-s', strengthLevel(s), 's');
 
   replaceHistoryState('screen-teaser');
   show('screen-teaser');
 
-  setupCardFlipState();
+  setupChestState();
 }
 
-/* ── Card flip reveal ── */
+/* ── Treasure chest reveal ──
+   The chest is identical for every persona until opened: no persona name,
+   color or text anywhere in the DOM (or the accessibility tree) before
+   that moment -- renderChestCardContent() is only ever called once the
+   user has actually opened it (or when restoring an already-opened chest
+   on screen rebuild), never while it's still closed. */
 function setGateVisible(visible){
   const gate = $('gate-card'), desc = $('t-desc');
   gate.classList.toggle('show', visible);
   desc.classList.toggle('show', visible);
   if(visible) gate.removeAttribute('inert'); else gate.setAttribute('inert','');
 }
-// Restores the card to its correct state whenever the teaser screen is
-// (re)built: face-down and ready on first arrival, or already flipped --
-// instantly, no animation -- if S.cardFlipped is already true for this session.
-function setupCardFlipState(){
-  const flipCard = $('flip-card');
-  if(S.cardFlipped){
-    flipCard.classList.add('flipped', 'no-anim');
-    $('card-reveal-prompt').classList.add('hide');
-    $('teaser-persona-card').setAttribute('aria-hidden', 'false');
+function renderChestCardContent(){
+  const persona = S.persona, suffix = getCharSuffix();
+  const v = PERSONA_VISUALS[persona];
+  const inner = $('chest-card-inner');
+  inner.style.background = v.bg;
+  inner.innerHTML = '';
+  const charWrap = document.createElement('div');
+  charWrap.className = 'chest-card-char';
+  const img = document.createElement('img');
+  img.alt = '';
+  img.addEventListener('error', ()=>{ charWrap.innerHTML = FALLBACK_COMPASS_SVG; }, { once:true });
+  img.src = `assets/characters/${v.name}_${suffix}.png`;
+  charWrap.appendChild(img);
+  const titleEl = document.createElement('div');
+  titleEl.className = 'chest-card-title';
+  titleEl.innerHTML = PERSONA_TITLES[persona][suffix];
+  const taglineEl = document.createElement('div');
+  taglineEl.className = 'chest-card-tagline';
+  taglineEl.textContent = typeof v.tagline === 'string' ? v.tagline : v.tagline[suffix];
+  inner.appendChild(charWrap);
+  inner.appendChild(titleEl);
+  inner.appendChild(taglineEl);
+}
+function clearChestCardContent(){
+  const inner = $('chest-card-inner');
+  inner.style.background = '';
+  inner.innerHTML = '';
+}
+// Restores the chest to its correct state whenever the teaser screen is
+// (re)built: closed and ready on first arrival, or already open -- instantly,
+// no animation -- if S.chestOpened is already true for this session.
+function setupChestState(){
+  const stage = $('chest-stage');
+  if(S.chestOpened){
+    stage.classList.add('open', 'no-anim');
+    renderChestCardContent();
+    $('chest-title').textContent = 'הפרופיל שלכם';
+    $('chest-subtitle').textContent = '';
     $('btn-submit-label').textContent = 'לפרופיל המלא';
     setGateVisible(true);
   } else {
-    flipCard.classList.remove('flipped', 'no-anim');
-    $('card-reveal-prompt').classList.remove('hide');
-    $('teaser-persona-card').setAttribute('aria-hidden', 'true');
-    $('btn-submit-label').textContent = 'חשפו את הכרטיס';
+    stage.classList.remove('open', 'no-anim');
+    clearChestCardContent();
+    $('chest-title').textContent = 'מצאתם תיבה בדרך';
+    $('chest-subtitle').textContent = 'הפרופיל שלכם מחכה בפנים';
+    $('btn-submit-label').textContent = 'פתחו את התיבה';
     setGateVisible(false);
   }
 }
-function startCardFlip(){
-  if(S.cardFlipped) return;
-  S.cardFlipped = true;
+function openChest(){
+  if(S.chestOpened) return;
+  S.chestOpened = true;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const flipCard = $('flip-card');
-  flipCard.classList.remove('no-anim');
-  flipCard.classList.add('flipped');
-  $('teaser-persona-card').setAttribute('aria-hidden', 'false');
-  $('card-reveal-prompt').classList.add('hide');
-  haptic('confirm');
-  trackEvent('card_reveal', { persona:S.persona });
+  const stage = $('chest-stage');
+  stage.classList.remove('no-anim');
+  stage.classList.add('open');
+  haptic('chestOpen'); // [15,60,25] -- a creak and a thud, fired synchronously in this click handler
+  trackEvent('chest_open', { persona:S.persona });
 
-  const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
-  $('card-reveal-announce').textContent = title;
+  renderChestCardContent();
 
-  if(!reduced){
-    setTimeout(()=>{
-      $('card-shine').classList.add('sweep');
-      ['s1','s2','s3'].forEach(cls => $('flip-card-scene').querySelector('.card-sparkle.'+cls).classList.add('pop'));
-      setTimeout(()=>{
-        $('card-shine').classList.remove('sweep');
-        $('flip-card-scene').querySelectorAll('.card-sparkle').forEach(el=>el.classList.remove('pop'));
-      }, 700);
-    }, 400); // midpoint of the 800ms flip
-  }
+  // Reduced motion compresses the ~1.3s sequence down to the ~400-500ms
+  // fade the CSS actually runs, so these external reveals stay proportional
+  // instead of leaving a long dead pause after the (much faster) fade.
+  const gateDelay = reduced ? 450 : 1200;
+  const seqEndDelay = reduced ? 500 : 1300;
+
+  setTimeout(()=>{ setGateVisible(true); }, gateDelay);
 
   setTimeout(()=>{
+    $('chest-title').textContent = 'הפרופיל שלכם';
+    $('chest-subtitle').textContent = '';
     $('btn-submit-label').textContent = 'לפרופיל המלא';
-    setGateVisible(true);
-  }, reduced ? 250 : 800);
+    const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
+    $('chest-announce').textContent = `נפתח: ${title}`;
+    $('btn-submit').focus();
+  }, seqEndDelay);
 }
-$('flip-card').addEventListener('click', startCardFlip);
+$('chest-stage').addEventListener('click', openChest);
 function renderDots(containerId, level, cls){
   const el = $(containerId);
   el.innerHTML = '';
@@ -2347,7 +2473,7 @@ $('inp-email').addEventListener('keydown', e=>{
   }
 });
 $('btn-submit').addEventListener('click', async ()=>{
-  if(!S.cardFlipped){ startCardFlip(); return; }
+  if(!S.chestOpened){ openChest(); return; }
   const name = $('inp-name').value.trim();
   const email = $('inp-email').value.trim();
   const st = $('status');
@@ -2637,7 +2763,7 @@ function showToast(msg, duration){
 /* ── Retake ── */
 function resetQuiz(){
   trackEvent('retake', {});
-  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, cardFlipped:false, name:'', email:''});
+  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, chestOpened:false, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
   updateStartBtn();
