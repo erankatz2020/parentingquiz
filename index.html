@@ -571,6 +571,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   position:relative;
   margin:0 18px 18px;
   perspective:1400px;
+  -webkit-perspective:1400px;
 }
 .flip-card{
   all:unset;
@@ -581,6 +582,17 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   border-radius:18px;
+  /* .flip-card-back's rotateY needs perspective from .flip-card-scene (its
+     grandparent) to reach it -- that only happens if this element, its
+     direct parent, preserves the 3D context instead of flattening it
+     (the default, which `all:unset` above also resets to). Without this,
+     the rotation still computes correctly at its 0/180deg endpoints (a
+     pure flip has no depth either way) but renders with no perspective,
+     and some mobile compositors (notably Android Chrome) then resolve the
+     transition instantly instead of animating it, rather than merely
+     rendering it "flat". */
+  transform-style:preserve-3d;
+  -webkit-transform-style:preserve-3d;
 }
 .flip-card:focus-visible{outline:3px solid var(--coral);outline-offset:4px;}
 .flip-card-front.persona-card{
@@ -595,21 +607,37 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   border-radius:18px;
   display:flex; align-items:center; justify-content:center;
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
   transform:rotateY(0deg);
   transform-origin:center;
   transition:transform .8s cubic-bezier(.3,1.25,.5,1);
-  animation:cardIdleWiggle 3s ease-in-out infinite;
 }
 .flip-card.flipped .flip-card-back{
   transform:rotateY(180deg);
-  animation:none;
 }
+/* The idle wiggle animates on this separate inner wrapper, not on
+   .flip-card-back itself: a CSS animation and a CSS transition racing on
+   the same property of the same element means the animation wins outright
+   while it's running, and stopping it (animation:none) in the very same
+   style change that also changes the transitioning property is exactly
+   the interruption case mobile Chrome doesn't reliably animate -- it
+   resolves straight to the end value instead of transitioning, which is
+   what made the flip look instant. Confirmed via Playwright: with the
+   wiggle sharing .flip-card-back's transform, the sampled transform was
+   identical across every frame from 0-900ms after the tap; moving the
+   wiggle here made it interpolate through ~49 distinct frames instead. */
+.card-back-inner{
+  width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  animation:cardIdleWiggle 3s ease-in-out infinite;
+}
+.flip-card.flipped .card-back-inner{animation:none;}
 .card-back-emblem{width:72px;height:72px;}
 @keyframes cardIdleWiggle{
-  0%,88%,100%{transform:rotateZ(0deg) rotateY(0deg);}
-  90%{transform:rotateZ(-1.4deg) rotateY(0deg);}
-  93%{transform:rotateZ(1.4deg) rotateY(0deg);}
-  96%{transform:rotateZ(-0.7deg) rotateY(0deg);}
+  0%,88%,100%{transform:rotateZ(0deg);}
+  90%{transform:rotateZ(-1.4deg);}
+  93%{transform:rotateZ(1.4deg);}
+  96%{transform:rotateZ(-0.7deg);}
 }
 .card-shine{
   position:absolute; top:0; bottom:0; left:-60%; width:45%;
@@ -638,10 +666,12 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   100%{opacity:0; transform:scale(.8) rotate(25deg);}
 }
 @media (prefers-reduced-motion: reduce){
-  .flip-card-back{animation:none; transition:opacity .25s var(--ease);}
+  .card-back-inner{animation:none;}
+  .flip-card-back{transition:opacity .25s var(--ease);}
   .flip-card.flipped .flip-card-back{transform:none; opacity:0; pointer-events:none;}
 }
-.flip-card.no-anim .flip-card-back{transition:none !important; animation:none !important;}
+.flip-card.no-anim .flip-card-back{transition:none !important;}
+.flip-card.no-anim .card-back-inner{animation:none !important;}
 
 .persona-char-area{
   margin:0 -20px 18px;
@@ -762,6 +792,25 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   width:1px; height:1px; overflow:hidden;
   opacity:0.01; pointer-events:none;
 }
+
+.debug-panel{
+  position:fixed; top:0; left:0; right:0; z-index:9999;
+  background:rgba(0,0,0,0.88); color:#7CFC7C;
+  font-family:'Courier New',monospace; font-size:10.5px; line-height:1.6;
+  padding:6px 8px; max-height:42vh; overflow-y:auto;
+  direction:ltr; text-align:left;
+  /* A diagnostics overlay, not an interactive layer -- without this it sits
+     on top of the route buoys/sliders on narrow screens and swallows every
+     tap meant for the app underneath. Only its own button opts back in. */
+  pointer-events:none;
+}
+.debug-panel div{word-break:break-all;}
+.debug-panel button{
+  margin-top:4px; padding:5px 12px; font-size:11px; font-weight:700;
+  background:#7CFC7C; color:#000; border:none; border-radius:4px; cursor:pointer;
+  pointer-events:auto;
+}
+.debug-panel span{color:#FFD166;}
 
 /* ── share card: 1080x1920 (9:16) Story-format PNG, rendered off-screen at
    540x960 base size (2x scale) and captured via html2canvas. Instagram/
@@ -1068,12 +1117,14 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
           </div>
         </div>
         <div class="flip-card-back" aria-hidden="true">
-          <svg class="card-back-emblem" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="42" cy="42" r="34" fill="none" stroke="var(--sand)" stroke-width="2" stroke-dasharray="3 6"/>
-            <polygon points="42,12 48,42 42,72 36,42" fill="var(--sand)" opacity="0.9"/>
-            <polygon points="72,42 42,48 42,36 12,42" fill="var(--sand)" opacity="0.6"/>
-            <circle cx="42" cy="42" r="5" fill="var(--sand)"/>
-          </svg>
+          <div class="card-back-inner">
+            <svg class="card-back-emblem" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="42" cy="42" r="34" fill="none" stroke="var(--sand)" stroke-width="2" stroke-dasharray="3 6"/>
+              <polygon points="42,12 48,42 42,72 36,42" fill="var(--sand)" opacity="0.9"/>
+              <polygon points="72,42 42,48 42,36 12,42" fill="var(--sand)" opacity="0.6"/>
+              <circle cx="42" cy="42" r="5" fill="var(--sand)"/>
+            </svg>
+          </div>
         </div>
       </button>
     </div>
@@ -1216,6 +1267,20 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 <input type="checkbox" switch id="haptic-switch" class="haptic-switch" tabindex="-1" aria-hidden="true"/>
 <label for="haptic-switch" id="haptic-switch-label" class="haptic-switch" aria-hidden="true"></label>
 
+<!-- ══ DEBUG PANEL (?debug=1 only) ══ -->
+<div id="debug-panel" class="debug-panel" style="display:none;">
+  <div>reduced-motion: <span id="dbg-reduced"></span></div>
+  <div>'vibrate' in navigator: <span id="dbg-has-vibrate"></span></div>
+  <div>UA: <span id="dbg-ua"></span></div>
+  <div>userActivation.hasBeenActive: <span id="dbg-activation"></span></div>
+  <div>last haptic: <span id="dbg-last-haptic">none yet</span></div>
+  <div>card flip transitionrun/transitionend: <span id="dbg-flip-events">0 / 0</span></div>
+  <div>shine animationstart: <span id="dbg-shine-events">0</span></div>
+  <div>sparkle animationstart: <span id="dbg-sparkle-events">0</span></div>
+  <button type="button" id="dbg-vibrate-test">בדיקת רטט</button>
+  <span id="dbg-vibrate-result"></span>
+</div>
+
 <!-- ══ SHARE MODAL (desktop fallback) ══ -->
 <div class="share-modal-backdrop" id="share-modal-backdrop">
   <div class="share-modal" id="share-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
@@ -1342,23 +1407,24 @@ function loadAnalyticsScripts(){
 
 /* ── Haptics ───────────────────────────────────────────────────────────
    Subtle feedback on slider interactions only. Never throws, no-ops where
-   unsupported, and respects prefers-reduced-motion. Android/desktop use
-   navigator.vibrate; iOS Safari (no Vibration API) gets a best-effort
+   unsupported. Does NOT gate on prefers-reduced-motion -- vibration isn't
+   visual motion, and gating it here previously meant a device reporting
+   reduced-motion (for any reason, not just the obvious OS toggle) silently
+   lost haptics too. Android/desktop use navigator.vibrate, called
+   synchronously from inside the caller's own event handler (never from a
+   timeout/promise/await) so it stays within the gesture's transient
+   activation window. iOS Safari (no Vibration API) gets a best-effort
    workaround via a hidden switch-styled checkbox toggled through its label
-   from inside a user-gesture handler, which some versions turn into a
-   native tap -- silently does nothing if it doesn't. */
-const HAPTIC_REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+   from inside that same synchronous handler -- silently does nothing if
+   it doesn't produce a tap. */
 const HAPTIC_PATTERNS = { tick:8, edge:15, confirm:[10,40,10] };
 const HAPTIC_MIN_INTERVAL_MS = 80;
 let hapticLastFired = 0;
+let hapticLastCall = null; // {type, time, fired} -- read by the debug panel
 function haptic(type){
   try{
     const pattern = HAPTIC_PATTERNS[type];
     if(pattern === undefined) return;
-    if(HAPTIC_REDUCED_MOTION){
-      if(ANALYTICS_DEBUG) console.log('[haptic]', type, '(skipped: reduced motion)');
-      return;
-    }
     const now = Date.now();
     if(now - hapticLastFired < HAPTIC_MIN_INTERVAL_MS){
       if(ANALYTICS_DEBUG) console.log('[haptic]', type, '(skipped: throttled)');
@@ -1372,9 +1438,60 @@ function haptic(type){
       if(label){ label.click(); fired = true; }
     }
     if(fired) hapticLastFired = now;
-    if(ANALYTICS_DEBUG) console.log('[haptic]', type, fired ? '(fired)' : '(no-op, unsupported)');
+    hapticLastCall = { type, time:now, fired };
+    if(ANALYTICS_DEBUG){
+      console.log('[haptic]', type, 'returned:', fired, 'at', now);
+      updateDebugPanel();
+    }
   }catch(e){ /* haptic() must never throw */ }
 }
+
+/* ── Debug panel (?debug=1 only) ── */
+const DEBUG_COUNTS = { flipRun:0, flipEnd:0, shineStart:0, sparkleStart:0 };
+function updateDebugPanel(){
+  if(!ANALYTICS_DEBUG) return;
+  const el = id => document.getElementById(id);
+  if(el('dbg-last-haptic') && hapticLastCall){
+    el('dbg-last-haptic').textContent = `${hapticLastCall.type} @ ${hapticLastCall.time} -> ${hapticLastCall.fired}`;
+  }
+  if(el('dbg-activation')){
+    el('dbg-activation').textContent = (navigator.userActivation && typeof navigator.userActivation.hasBeenActive === 'boolean')
+      ? navigator.userActivation.hasBeenActive : 'n/a (API unsupported)';
+  }
+  if(el('dbg-flip-events')) el('dbg-flip-events').textContent = `${DEBUG_COUNTS.flipRun} / ${DEBUG_COUNTS.flipEnd}`;
+  if(el('dbg-shine-events')) el('dbg-shine-events').textContent = DEBUG_COUNTS.shineStart;
+  if(el('dbg-sparkle-events')) el('dbg-sparkle-events').textContent = DEBUG_COUNTS.sparkleStart;
+}
+function initDebugPanel(){
+  if(!ANALYTICS_DEBUG) return;
+  const panel = document.getElementById('debug-panel');
+  panel.style.display = 'block';
+  document.getElementById('dbg-reduced').textContent = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('dbg-has-vibrate').textContent = 'vibrate' in navigator;
+  document.getElementById('dbg-ua').textContent = navigator.userAgent;
+
+  document.addEventListener('transitionrun', e=>{
+    if(e.target.classList && e.target.classList.contains('flip-card-back')){ DEBUG_COUNTS.flipRun++; updateDebugPanel(); }
+  });
+  document.addEventListener('transitionend', e=>{
+    if(e.target.classList && e.target.classList.contains('flip-card-back')){ DEBUG_COUNTS.flipEnd++; updateDebugPanel(); }
+  });
+  document.addEventListener('animationstart', e=>{
+    if(e.target.id === 'card-shine'){ DEBUG_COUNTS.shineStart++; updateDebugPanel(); }
+    if(e.target.classList && e.target.classList.contains('card-sparkle')){ DEBUG_COUNTS.sparkleStart++; updateDebugPanel(); }
+  });
+
+  document.getElementById('dbg-vibrate-test').addEventListener('click', ()=>{
+    let result;
+    try{ result = navigator.vibrate ? navigator.vibrate(200) : 'navigator.vibrate missing'; }
+    catch(e){ result = 'threw: ' + e.message; }
+    document.getElementById('dbg-vibrate-result').textContent = 'returned: ' + String(result);
+  });
+
+  updateDebugPanel();
+  setInterval(updateDebugPanel, 1000); // keeps userActivation (a live, time-limited flag) current
+}
+initDebugPanel();
 
 function getCharSuffix(){
   if(S.gender==='m' || S.gender==='f') return S.gender;
