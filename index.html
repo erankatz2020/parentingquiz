@@ -131,7 +131,11 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   background:linear-gradient(0deg, var(--sand) 60%, rgba(246,239,228,0));
   z-index:30;
 }
-.cookie-banner{
+/* Named "consent-notice" (not "cookie-banner") because desktop ad-block extensions
+   commonly ship cosmetic filter lists that hide elements by generic cookie-banner
+   id/class patterns; mobile browsers rarely run such extensions, which is why a
+   literal "cookie-banner" name shows on mobile but silently vanishes on desktop. */
+.consent-notice{
   display:none;
   background:var(--card);
   border:1px solid var(--border);
@@ -140,21 +144,21 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   margin-bottom:10px;
   box-shadow:0 4px 16px rgba(29,43,58,0.12);
 }
-.cookie-banner.show{display:block;}
-.cookie-banner p{
+.consent-notice.show{display:block;}
+.consent-notice p{
   font-size:13px; line-height:1.5; color:var(--ink-soft);
   margin-bottom:10px;
 }
-.cookie-banner-actions{display:flex; gap:10px;}
-.cookie-banner-actions button{
+.consent-notice-actions{display:flex; gap:10px;}
+.consent-notice-actions button{
   flex:1; min-height:40px;
   border-radius:10px;
   font-family:var(--font-body);
   font-size:14px; font-weight:700;
   cursor:pointer; border:none;
 }
-#btn-cookie-accept{background:var(--coral); color:#fff;}
-#btn-cookie-decline{background:var(--sand); color:var(--ink-soft); border:1px solid var(--border);}
+#btn-consent-accept{background:var(--coral); color:#fff;}
+#btn-consent-decline{background:var(--sand); color:var(--ink-soft); border:1px solid var(--border);}
 .btn-main{
   display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;min-height:52px;
@@ -632,11 +636,11 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
 
     <div class="pinned-wrap">
-      <div class="cookie-banner" id="cookie-banner">
+      <div class="consent-notice" id="consent-notice">
         <p>אנחנו משתמשים בעוגיות כדי להבין איך משתמשים בשאלון ולשפר אותו. <a href="https://www.theparentingmap.com/privacy-policy/" target="_blank" rel="noopener" class="link-btn">מדיניות הפרטיות</a></p>
-        <div class="cookie-banner-actions">
-          <button type="button" id="btn-cookie-accept">אישור</button>
-          <button type="button" id="btn-cookie-decline">לא תודה</button>
+        <div class="consent-notice-actions">
+          <button type="button" id="btn-consent-accept">אישור</button>
+          <button type="button" id="btn-consent-decline">לא תודה</button>
         </div>
       </div>
       <div class="start-btn-wrap">
@@ -1032,6 +1036,8 @@ const t = o => o?.[S.gender] ?? o?.n ?? '';
 const $ = id => document.getElementById(id);
 const P = PERSONAS;
 
+// Consent choice persists in localStorage under 'cookieConsent' ('accepted'/'declined').
+// To re-test the banner, clear it from the browser console: localStorage.removeItem('cookieConsent')
 function initCookieConsent(){
   const choice = localStorage.getItem('cookieConsent');
   if(choice === 'accepted'){
@@ -1039,16 +1045,16 @@ function initCookieConsent(){
     return;
   }
   if(choice === 'declined') return;
-  $('cookie-banner').classList.add('show');
+  $('consent-notice').classList.add('show');
 }
-$('btn-cookie-accept').addEventListener('click', ()=>{
+$('btn-consent-accept').addEventListener('click', ()=>{
   localStorage.setItem('cookieConsent', 'accepted');
-  $('cookie-banner').classList.remove('show');
+  $('consent-notice').classList.remove('show');
   loadAnalyticsScripts();
 });
-$('btn-cookie-decline').addEventListener('click', ()=>{
+$('btn-consent-decline').addEventListener('click', ()=>{
   localStorage.setItem('cookieConsent', 'declined');
-  $('cookie-banner').classList.remove('show');
+  $('consent-notice').classList.remove('show');
 });
 initCookieConsent();
 
