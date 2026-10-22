@@ -230,7 +230,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .slider-endpoints span{
   flex:1;font-size:14px;line-height:1.4;color:var(--ink-soft);text-align:center;
 }
-.slider-track-wrap{position:relative;height:34px;}
+.slider-track-wrap{position:relative;height:44px; touch-action:none;}
 .slider-track-visual{
   position:absolute; left:0; right:0; top:50%;
   transform:translateY(-50%);
@@ -251,6 +251,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   direction:ltr;
   cursor:pointer;
   outline:none;
+  touch-action:none;
 }
 .slider-track-wrap input[type=range]::-webkit-slider-runnable-track{
   height:8px;background:transparent;
@@ -1017,6 +1018,12 @@ function wireSlider(inputId, thumbId, trackId){
   const reposition = ()=>positionThumb(input, thumb, track);
   input.addEventListener('input', reposition);
   window.addEventListener('resize', reposition);
+  // Save the live value to S.answers on every point a drag could end, not
+  // just on next/back -- belt-and-braces against anything that might read
+  // a stale value before the question changes.
+  ['input','change','pointerup','touchend'].forEach(evt=>{
+    input.addEventListener(evt, ()=>{ if(S.answers.length) storeCurrent(); });
+  });
   // Custom step sizes: 5 per arrow press, 20 with Shift. The input is
   // forced direction:ltr (so low=left/high=right visually, matching the
   // endpoint labels) -- ArrowRight/Up increase and ArrowLeft/Down
