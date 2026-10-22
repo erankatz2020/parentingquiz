@@ -330,7 +330,10 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .route-svg .buoy .buoy-focus-ring{stroke:none;transition:stroke .12s var(--ease);}
 .route-svg .buoy:focus-visible .buoy-focus-ring{stroke:var(--coral);}
 .buoy-legend{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:6px;opacity:.75;}
-.short-slider{color:var(--coral);font-weight:900;}
+.short-slider{font-weight:900;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;}
+.slider-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:4px;vertical-align:middle;}
+.slider-dot-boundaries{background:var(--sea);}
+.slider-dot-connection{background:var(--coral);}
 
 .situation-card{
   background:var(--sea);
@@ -377,20 +380,13 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 }
 .slider-track-wrap{position:relative;height:44px; touch-action:none;}
 .slider-track-visual{
-  position:absolute; left:0; right:0; top:50%;
-  transform:translateY(-50%);
-  height:8px; border-radius:99px;
+  position:absolute; inset:0;
+  width:100%; height:100%;
   pointer-events:none;
+  overflow:visible;
 }
-.slider-track-wrap.boundaries .slider-track-visual{
-  background:linear-gradient(90deg, var(--sea-light), var(--sea));
-}
-.slider-track-wrap.connection .slider-track-visual{
-  background:linear-gradient(90deg, var(--coral-light), var(--coral));
-}
-.slider-track-wrap.unanswered .slider-track-visual{
-  opacity:.4; filter:grayscale(.5);
-}
+.slider-track-wrap.boundaries .slider-track-visual{color:var(--sea);}
+.slider-track-wrap.connection .slider-track-visual{color:var(--coral);}
 .slider-track-wrap input[type=range]{
   -webkit-appearance:none;appearance:none;
   position:absolute;inset:0;
@@ -607,6 +603,12 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+.haptic-switch{
+  position:fixed; left:-9999px; top:-9999px;
+  width:1px; height:1px; overflow:hidden;
+  opacity:0.01; pointer-events:none;
+}
+
 /* ── share card: 1080x1920 (9:16) Story-format PNG, rendered off-screen at
    540x960 base size (2x scale) and captured via html2canvas. Instagram/
    WhatsApp Stories UI covers roughly the top/bottom 250px of the final
@@ -749,7 +751,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
           <span id="b-high"></span>
         </div>
         <div class="slider-track-wrap boundaries" id="wrap-boundaries">
-          <div class="slider-track-visual" id="track-boundaries"></div>
+          <svg class="slider-track-visual" id="track-boundaries" xmlns="http://www.w3.org/2000/svg"></svg>
           <input type="range" id="slider-boundaries" min="0" max="100" step="1" value="50"/>
           <svg class="slider-thumb-svg" id="thumb-boundaries" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -763,7 +765,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
           <span id="c-high"></span>
         </div>
         <div class="slider-track-wrap connection" id="wrap-connection">
-          <div class="slider-track-visual" id="track-connection"></div>
+          <svg class="slider-track-visual" id="track-connection" xmlns="http://www.w3.org/2000/svg"></svg>
           <input type="range" id="slider-connection" min="0" max="100" step="1" value="50"/>
           <svg class="slider-thumb-svg" id="thumb-connection" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -1034,6 +1036,12 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 <div class="toast" id="toast"></div>
 
+<!-- Hidden best-effort iOS haptic workaround: toggling a switch-styled checkbox
+     via its label from inside a user-gesture handler can produce a native tap
+     on devices without the Vibration API. Never shown to users. -->
+<input type="checkbox" switch id="haptic-switch" class="haptic-switch" tabindex="-1" aria-hidden="true"/>
+<label for="haptic-switch" id="haptic-switch-label" class="haptic-switch" aria-hidden="true"></label>
+
 <!-- ══ SHARE MODAL (desktop fallback) ══ -->
 <div class="share-modal-backdrop" id="share-modal-backdrop">
   <div class="share-modal" id="share-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
@@ -1060,12 +1068,43 @@ const S = {
   age:null, gender:null,
   questions:[], idx:0,
   answers:[],
+  sliderLayout:[],
   touchedB:false, touchedC:false, nextConfirmPending:false,
   scores:{w:0,s:0},
   persona:null, secondary:null,
   charSuffix:null,
   name:'', email:''
 };
+
+// Per-question slider layout (flip/order), generated once per quiz run and
+// stored alongside the answers so it persists across back/forward, buoy
+// jumps and history navigation -- never re-randomized on revisit.
+function shuffledHalfTrue(n){
+  const half = Math.floor(n/2);
+  const arr = new Array(half).fill(true).concat(new Array(n-half).fill(false));
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function generateSliderLayout(n){
+  const flipB = shuffledHalfTrue(n), flipC = shuffledHalfTrue(n), swap = shuffledHalfTrue(n);
+  const layout = [];
+  for(let i=0;i<n;i++){
+    layout.push({ flipBoundaries:flipB[i], flipConnection:flipC[i], swapOrder:swap[i] });
+  }
+  if(ANALYTICS_DEBUG) console.log('[layout] slider layout for this run:', layout);
+  return layout;
+}
+function currentSliderLayout(){
+  return S.sliderLayout[S.idx] || { flipBoundaries:false, flipConnection:false, swapOrder:false };
+}
+// 100-v is its own inverse, so the same formula converts visual<->semantic
+// in both directions: whatever you pass in, you get the other one back.
+function flipValue(flipped, v){
+  return flipped ? 100-v : v;
+}
 
 /* ── Analytics ──────────────────────────────────────────────────────────
    Nothing here ever loads a third-party script or fires an event unless
@@ -1124,6 +1163,42 @@ function loadAnalyticsScripts(){
   window.fbq('track', 'PageView');
 
   if(ANALYTICS_DEBUG) console.log('[analytics] scripts loaded (consent accepted)');
+}
+
+/* ── Haptics ───────────────────────────────────────────────────────────
+   Subtle feedback on slider interactions only. Never throws, no-ops where
+   unsupported, and respects prefers-reduced-motion. Android/desktop use
+   navigator.vibrate; iOS Safari (no Vibration API) gets a best-effort
+   workaround via a hidden switch-styled checkbox toggled through its label
+   from inside a user-gesture handler, which some versions turn into a
+   native tap -- silently does nothing if it doesn't. */
+const HAPTIC_REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const HAPTIC_PATTERNS = { tick:8, edge:15, confirm:[10,40,10] };
+const HAPTIC_MIN_INTERVAL_MS = 80;
+let hapticLastFired = 0;
+function haptic(type){
+  try{
+    const pattern = HAPTIC_PATTERNS[type];
+    if(pattern === undefined) return;
+    if(HAPTIC_REDUCED_MOTION){
+      if(ANALYTICS_DEBUG) console.log('[haptic]', type, '(skipped: reduced motion)');
+      return;
+    }
+    const now = Date.now();
+    if(now - hapticLastFired < HAPTIC_MIN_INTERVAL_MS){
+      if(ANALYTICS_DEBUG) console.log('[haptic]', type, '(skipped: throttled)');
+      return;
+    }
+    let fired = false;
+    if(navigator.vibrate){
+      fired = !!navigator.vibrate(pattern);
+    } else if(type==='confirm' || type==='edge'){
+      const label = document.getElementById('haptic-switch-label');
+      if(label){ label.click(); fired = true; }
+    }
+    if(fired) hapticLastFired = now;
+    if(ANALYTICS_DEBUG) console.log('[haptic]', type, fired ? '(fired)' : '(no-op, unsupported)');
+  }catch(e){ /* haptic() must never throw */ }
 }
 
 function getCharSuffix(){
@@ -1353,6 +1428,7 @@ $('btn-start').addEventListener('click', ()=>{
   S.questions = getQuestionsV2(S.age);
   S.idx = 0;
   S.answers = new Array(S.questions.length).fill(null);
+  S.sliderLayout = generateSliderLayout(S.questions.length);
   S.scores = {w:0,s:0};
   trackEvent('quiz_start', { age_group:S.age, voice:S.gender });
   pushHistoryState('screen-quiz', {qIdx:0});
@@ -1390,6 +1466,19 @@ function positionThumb(input, thumbSvg, trackVisual){
   // base translate(-50%,-50%) + --pop scale both live in the stylesheet now,
   // so the "pop" animation below doesn't fight this per-frame position update.
 }
+// Dashed route line + hollow end circles, identical regardless of flip state
+// (color only, set via CSS `color` per slider type) -- recomputed whenever
+// the wrap's pixel width could have changed, same triggers as positionThumb.
+function renderTrackVisual(trackSvg){
+  const rect = trackSvg.getBoundingClientRect();
+  const w = rect.width, h = rect.height || 44;
+  if(w <= 0) return;
+  const inset = 17, y = h/2; // 17 = half the 34px thumb width, matches the handle's travel range
+  trackSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  trackSvg.innerHTML = `<line x1="${inset}" y1="${y}" x2="${w-inset}" y2="${y}" stroke="currentColor" stroke-opacity="0.6" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>
+    <circle cx="${inset}" cy="${y}" r="5" fill="none" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+    <circle cx="${w-inset}" cy="${y}" r="5" fill="none" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>`;
+}
 function popThumb(el){
   el.style.setProperty('--pop', '1.3');
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -1408,6 +1497,7 @@ function markAnswered(kind){
   if(already) return; // already answered this question -- skip the re-pop on every drag tick
   setSliderUIState(kind, true);
   popThumb($('thumb-'+kind));
+  haptic('confirm');
   // If this question now has exactly one slider answered, nudge toward the other
   // right away -- the same hint shown after an attempted continue or a jump in.
   if(S.touchedB !== S.touchedC) applyUnansweredHighlights();
@@ -1416,16 +1506,39 @@ function applyUnansweredHighlights(){
   if(!S.touchedB) $('card-boundaries').classList.add('unanswered-highlight');
   if(!S.touchedC) $('card-connection').classList.add('unanswered-highlight');
 }
+// Center-crossing/edge-arrival haptics track the raw (visual) slider value --
+// the value that matches what's physically on screen, which is also what a
+// flip leaves unchanged at the fixed point 50 and swaps at the edges 0/100.
+const hapticLastValue = { boundaries:50, connection:50 };
+const hapticAtEdge = { boundaries:false, connection:false };
+function resetHapticTracking(){
+  hapticLastValue.boundaries = +$('slider-boundaries').value;
+  hapticLastValue.connection = +$('slider-connection').value;
+  hapticAtEdge.boundaries = false;
+  hapticAtEdge.connection = false;
+}
+function checkSliderHaptics(kind, newVal){
+  const prevSide = Math.sign(hapticLastValue[kind] - 50);
+  const newSide = Math.sign(newVal - 50);
+  if(prevSide !== 0 && newSide !== 0 && prevSide !== newSide) haptic('tick');
+  hapticLastValue[kind] = newVal;
+  if(newVal===0 || newVal===100){
+    if(!hapticAtEdge[kind]){ haptic('edge'); hapticAtEdge[kind] = true; }
+  } else {
+    hapticAtEdge[kind] = false;
+  }
+}
 const ARROW_KEYS = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
 function wireSlider(kind, inputId, thumbId, trackId){
   const input = $(inputId), thumb = $(thumbId), track = $(trackId);
-  const reposition = ()=>positionThumb(input, thumb, track);
+  const reposition = ()=>{ positionThumb(input, thumb, track); renderTrackVisual(track); };
   input.addEventListener('input', reposition);
   window.addEventListener('resize', reposition);
   // A slider counts as "answered" the moment the user deliberately interacts
   // with it -- not just when the value changes (a tap that lands exactly on
   // the current value, e.g. the 50 midpoint, fires no native 'input' event).
   input.addEventListener('input', ()=>markAnswered(kind));
+  input.addEventListener('input', ()=>checkSliderHaptics(kind, +input.value));
   // Save the live value to S.answers on every point a drag could end, not
   // just on next/back -- belt-and-braces against anything that might read
   // a stale value before the question changes.
@@ -1562,22 +1675,35 @@ function updateRoute(){
   $('route-boat').setAttribute('transform', `translate(${x},-2)`);
 }
 
+// swapOrder physically reorders the DOM nodes (not just CSS `order`) so that
+// native Tab order -- which follows DOM order, not visual flex order --
+// matches the visual order too.
+function applySliderOrder(swapOrder){
+  const parent = $('card-boundaries').parentElement;
+  if(swapOrder) parent.insertBefore($('card-connection'), $('card-boundaries'));
+  else parent.insertBefore($('card-boundaries'), $('card-connection'));
+}
+
 function renderQ(){
   if(!$('route-svg').innerHTML) buildRoute();
   const q = S.questions[S.idx], n = S.idx+1, tot = S.questions.length;
+  const layout = currentSliderLayout();
   trackEvent('question_view', { question_number:n });
   $('q-count').textContent = `רגע ${n} מתוך ${tot}`;
   $('btn-back').classList.toggle('show', S.idx>0);
   $('situation-text').textContent = t(q.situation);
   $('next-label').textContent = n===tot ? 'לגלות את התוצאה' : 'ממשיכים להפליג';
-  $('b-low').textContent = t(q.boundaries.low);
-  $('b-high').textContent = t(q.boundaries.high);
-  $('c-low').textContent = t(q.connection.low);
-  $('c-high').textContent = t(q.connection.high);
+  applySliderOrder(layout.swapOrder);
+  // When flipped, the visual left side now means "high" semantically, so the
+  // low/high endpoint text swaps sides to match what dragging there means.
+  $('b-low').textContent = t(layout.flipBoundaries ? q.boundaries.high : q.boundaries.low);
+  $('b-high').textContent = t(layout.flipBoundaries ? q.boundaries.low : q.boundaries.high);
+  $('c-low').textContent = t(layout.flipConnection ? q.connection.high : q.connection.low);
+  $('c-high').textContent = t(layout.flipConnection ? q.connection.low : q.connection.high);
 
   const saved = S.answers[S.idx];
-  $('slider-boundaries').value = saved ? saved.boundaries : 50;
-  $('slider-connection').value = saved ? saved.connection : 50;
+  $('slider-boundaries').value = flipValue(layout.flipBoundaries, saved ? saved.boundaries : 50);
+  $('slider-connection').value = flipValue(layout.flipConnection, saved ? saved.connection : 50);
   S.touchedB = saved ? !!saved.boundariesTouched : false;
   S.touchedC = saved ? !!saved.connectionTouched : false;
   S.nextConfirmPending = false;
@@ -1585,6 +1711,7 @@ function renderQ(){
   setSliderUIState('boundaries', S.touchedB);
   setSliderUIState('connection', S.touchedC);
   repositionBoundaries(); repositionConnection();
+  resetHapticTracking();
   updateRoute();
   $('slider-boundaries').focus();
 
@@ -1599,9 +1726,10 @@ function renderQ(){
 }
 
 function storeCurrent(){
+  const layout = currentSliderLayout();
   S.answers[S.idx] = {
-    boundaries: parseInt($('slider-boundaries').value,10),
-    connection: parseInt($('slider-connection').value,10),
+    boundaries: flipValue(layout.flipBoundaries, parseInt($('slider-boundaries').value,10)),
+    connection: flipValue(layout.flipConnection, parseInt($('slider-connection').value,10)),
     boundariesTouched: S.touchedB,
     connectionTouched: S.touchedC
   };
@@ -1654,8 +1782,8 @@ function findFirstUnansweredIdx(){
   // Prefer a question where the specific slider that's short of 5 answers is
   // the one left untouched, so the "go back" button lands somewhere that
   // actually fixes the deficiency rather than just any unanswered question.
-  const axisW = S.answeredCountW < 5; // connection slider ("second")
-  const axisS = S.answeredCountS < 5; // boundaries slider ("first")
+  const axisW = S.answeredCountW < 5; // connection slider (coral/"אלמוגי")
+  const axisS = S.answeredCountS < 5; // boundaries slider (sea/"טורקיז")
   for(let i=0;i<S.answers.length;i++){
     const a = S.answers[i];
     if(!a) return i;
@@ -1664,11 +1792,14 @@ function findFirstUnansweredIdx(){
   }
   return 0;
 }
+function sliderNameHTML(kind, short){
+  const dot = `<span class="slider-dot slider-dot-${kind}"></span>`;
+  const name = kind==='boundaries' ? 'הטורקיז' : 'האלמוגי';
+  return `<span class="${short?'short-slider':''}">${dot}${name}</span>`;
+}
 function renderInsufficientScreen(){
   const countS = S.answeredCountS, countW = S.answeredCountW;
-  const firstCls = countS < 5 ? 'short-slider' : '';
-  const secondCls = countW < 5 ? 'short-slider' : '';
-  $('insufficient-msg').innerHTML = `כדי לקבל תוצאה, צריך לענות על כל אחד משני הסליידרים ב-5 שאלות לפחות. בסליידר <span class="${firstCls}">הראשון</span> ענית על ${countS}, ו<span class="${secondCls}">בשני</span> על ${countW}.`;
+  $('insufficient-msg').innerHTML = `כדי לקבל תוצאה, צריך לענות על לפחות 5 שאלות בכל סליידר. ענית על ${countS} שאלות בסליידר ${sliderNameHTML('boundaries', countS<5)} ועל ${countW} בסליידר ${sliderNameHTML('connection', countW<5)}.`;
   $('go-answer-label').textContent = `חזרה לשאלה ${(S.pendingJumpIdx||0)+1}`;
   renderInsufficientRoute();
 }
@@ -2136,7 +2267,7 @@ function showToast(msg, duration){
 /* ── Retake ── */
 function resetQuiz(){
   trackEvent('retake', {});
-  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, name:'', email:''});
+  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
   updateStartBtn();
