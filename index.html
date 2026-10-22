@@ -284,8 +284,15 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 .route-wrap{padding:6px 18px 10px;}
 .route-svg{width:100%;height:46px;display:block;}
-.route-svg .buoy.tappable{cursor:pointer;}
-.route-svg .buoy.tappable:focus-visible circle{outline:2px solid var(--coral);outline-offset:2px;}
+.route-svg.two-row{height:92px;}
+.route-svg .buoy{cursor:pointer;outline:none;}
+.route-svg .buoy .buoy-visual{transition:transform .12s var(--ease), opacity .12s var(--ease); transform-box:fill-box; transform-origin:center;}
+.route-svg .buoy:hover .buoy-visual{opacity:.8;}
+.route-svg .buoy:active .buoy-visual{transform:scale(.88);}
+.route-svg .buoy .buoy-focus-ring{stroke:none;transition:stroke .12s var(--ease);}
+.route-svg .buoy:focus-visible .buoy-focus-ring{stroke:var(--coral);}
+.buoy-legend{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:6px;opacity:.75;}
+.short-slider{color:var(--coral);font-weight:900;}
 
 .situation-card{
   background:var(--sea);
@@ -745,8 +752,9 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
       <div class="card" style="text-align:center;margin-top:40px;">
         <p id="insufficient-msg" style="font-size:17px;line-height:1.6;color:var(--navy);font-weight:700;"></p>
         <div class="route-wrap" style="padding:18px 0 0;">
-          <svg class="route-svg" id="route-svg-insufficient" viewBox="0 0 380 46" xmlns="http://www.w3.org/2000/svg"></svg>
+          <svg class="route-svg two-row" id="route-svg-insufficient" viewBox="0 0 380 92" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
+        <p class="buoy-legend">✓ נענתה · חצי = סליידר אחד · ! דולגה</p>
       </div>
     </div>
     <div class="pinned-wrap">
@@ -1346,6 +1354,9 @@ function markAnswered(kind){
   if(already) return; // already answered this question -- skip the re-pop on every drag tick
   setSliderUIState(kind, true);
   popThumb($('thumb-'+kind));
+  // If this question now has exactly one slider answered, nudge toward the other
+  // right away -- the same hint shown after an attempted continue or a jump in.
+  if(S.touchedB !== S.touchedC) applyUnansweredHighlights();
 }
 function applyUnansweredHighlights(){
   if(!S.touchedB) $('card-boundaries').classList.add('unanswered-highlight');
@@ -1415,19 +1426,43 @@ function buoyState(i){
   if(i === S.idx) return 'current';
   return buoyStateForSummary(i);
 }
-function buoyFill(state){
-  switch(state){
-    case 'answered': return { fill:'var(--sea)', stroke:'var(--sea)', opacity:'1' };
-    case 'half':     return { fill:'var(--sea)', stroke:'var(--sea)', opacity:'0.45' };
-    case 'skipped':  return { fill:'var(--sand)', stroke:'var(--coral)', opacity:'1' };
-    default:         return { fill:'var(--sand)', stroke:'var(--sea)', opacity:'1' };
-  }
-}
 function buoyLabel(i, state){
   const map = { answered:'נענתה', half:'נענתה חלקית', skipped:'לא נענתה', upcoming:'טרם הגעת אליה', current:'השאלה הנוכחית' };
   return `שאלה ${i+1}, ${map[state]}`;
 }
+// The visible graphic for one buoy at (cx,cy) with radius r: solid sea fill +
+// white check when fully answered, a top/bottom sea-vs-white split when only
+// one slider was answered, a coral ring + "!" when skipped, and a plain
+// sand/sea outline for upcoming questions (and, at a larger r, for the
+// current one, which also gets the boat icon drawn above it separately).
+function buoyVisual(cx, cy, r, state){
+  if(state==='answered'){
+    const cm = r*0.52;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--sea)" stroke="var(--sea)" stroke-width="2.5"/>
+      <path d="M${cx-cm*0.9},${cy+cm*0.05} L${cx-cm*0.1},${cy+cm*0.7} L${cx+cm},${cy-cm*0.55}" fill="none" stroke="#fff" stroke-width="${Math.max(1.4,r*0.24)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  if(state==='half'){
+    return `<path d="M${cx-r},${cy} A${r},${r} 0 0 1 ${cx+r},${cy} Z" fill="var(--sea)"/>
+      <path d="M${cx-r},${cy} A${r},${r} 0 0 0 ${cx+r},${cy} Z" fill="#fff"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--sea)" stroke-width="2.5"/>`;
+  }
+  if(state==='skipped'){
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--sand)" stroke="var(--coral)" stroke-width="3"/>
+      <text x="${cx}" y="${cy+r*0.5}" text-anchor="middle" font-size="${r*1.25}" font-weight="900" fill="var(--coral)">!</text>`;
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--sand)" stroke="var(--sea)" stroke-width="2.5"/>`;
+}
+// One tappable buoy: an enlarged invisible hit circle (so the touch target is
+// well past the small visible dot), a focus ring, and the visual itself.
+function buoyMarkup(i, x, y, r, hitR, state){
+  return `<g class="buoy" data-i="${i}" role="button" tabindex="0" aria-label="${buoyLabel(i,state)}">
+    <circle class="buoy-hit" cx="${x}" cy="${y}" r="${hitR}" fill="transparent"/>
+    <circle class="buoy-focus-ring" cx="${x}" cy="${y}" r="${r+4}" fill="none" stroke-width="2"/>
+    <g class="buoy-visual">${buoyVisual(x,y,r,state)}</g>
+  </g>`;
+}
 function jumpToBuoy(i){
+  if(i === S.idx) return; // already there
   storeCurrent();
   S.idx = i;
   pushHistoryState('screen-quiz', {qIdx:S.idx});
@@ -1436,50 +1471,40 @@ function jumpToBuoy(i){
 
 function buildRoute(){
   const svg = $('route-svg');
-  const total = S.questions.length;
-  const padX = 14, w = 380-padX*2, y = 23;
-  let html = `<line x1="${padX}" y1="${y}" x2="${380-padX}" y2="${y}" stroke="var(--sea-light)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>`;
-  for(let i=0;i<total;i++){
-    const x = padX + ((total-1-i)/(total-1))*w; // question 1 on the right (RTL start)
-    html += `<g class="buoy" data-i="${i}">`;
-    html += `<circle cx="${x}" cy="${y}" r="6" fill="var(--sand)" stroke="var(--sea)" stroke-width="2.5"/>`;
-    html += `<text class="buoy-mark" x="${x}" y="${y+3.5}" text-anchor="middle" font-size="9" font-weight="900" fill="var(--coral)" style="display:none;">!</text>`;
-    html += `</g>`;
-  }
-  html += `<g id="route-boat" style="transition:transform .4s var(--ease);"><text x="0" y="${y+5}" text-anchor="middle" font-size="16">⛵</text></g>`;
-  svg.innerHTML = html;
+  const padX = 14, y = 23;
+  const w = 380-padX*2;
+  svg.innerHTML = `<line x1="${padX}" y1="${y}" x2="${380-padX}" y2="${y}" stroke="var(--sea-light)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>
+    <g id="route-buoys"></g>
+    <g id="route-boat" style="transition:transform .4s var(--ease); pointer-events:none;"><text x="0" y="${y+5}" text-anchor="middle" font-size="16">⛵</text></g>`;
   S._routePadX = padX; S._routeW = w; S._routeY = y;
 }
 $('route-svg').addEventListener('click', e=>{
-  const g = e.target.closest('.buoy.tappable');
+  const g = e.target.closest('.buoy');
   if(g) jumpToBuoy(+g.dataset.i);
 });
 $('route-svg').addEventListener('keydown', e=>{
   if(e.key!=='Enter' && e.key!==' ') return;
-  const g = e.target.closest('.buoy.tappable');
+  const g = e.target.closest('.buoy');
   if(!g) return;
   e.preventDefault();
   jumpToBuoy(+g.dataset.i);
 });
 function updateRoute(){
   const total = S.questions.length;
-  $('route-svg').querySelectorAll('.buoy').forEach(g=>{
-    const i = +g.dataset.i;
+  const padX = S._routePadX, w = S._routeW, y = S._routeY;
+  // Every buoy is reachable every state (passed/skipped/current/upcoming),
+  // so each question's full visual is rebuilt on every call rather than
+  // patching individual attributes -- the states differ in child markup
+  // (checkmark, half-split, "!" ring), not just colors.
+  let html = '';
+  for(let i=0;i<total;i++){
+    const x = padX + ((total-1-i)/(total-1))*w; // question 1 on the right (RTL start)
     const state = buoyState(i);
-    const f = buoyFill(state);
-    const circle = g.querySelector('circle');
-    circle.setAttribute('fill', f.fill);
-    circle.setAttribute('fill-opacity', f.opacity);
-    circle.setAttribute('stroke', f.stroke);
-    circle.setAttribute('stroke-width', state==='skipped' ? 3 : 2.5);
-    g.querySelector('.buoy-mark').style.display = state==='skipped' ? '' : 'none';
-    g.setAttribute('aria-label', buoyLabel(i, state));
-    const tappable = i < S.idx;
-    g.classList.toggle('tappable', tappable);
-    if(tappable){ g.setAttribute('role','button'); g.setAttribute('tabindex','0'); }
-    else { g.removeAttribute('role'); g.removeAttribute('tabindex'); }
-  });
-  const x = S._routePadX + ((total-1-S.idx)/(total-1))*S._routeW;
+    const r = state==='current' ? 8 : 6;
+    html += buoyMarkup(i, x, y, r, 16, state);
+  }
+  $('route-buoys').innerHTML = html;
+  const x = padX + ((total-1-S.idx)/(total-1))*w;
   $('route-boat').setAttribute('transform', `translate(${x},-2)`);
 }
 
@@ -1512,6 +1537,10 @@ function renderQ(){
   if(S.jumpHighlight === S.idx){
     applyUnansweredHighlights();
     S.jumpHighlight = null;
+  } else if(S.touchedB !== S.touchedC){
+    // Landed here (back/forward, buoy jump) on a question with exactly one
+    // slider answered -- nudge toward the other, same as while answering live.
+    applyUnansweredHighlights();
   }
 }
 
@@ -1568,11 +1597,11 @@ function finishQuiz(){
   runLoadingAnimation();
 }
 function findFirstUnansweredIdx(){
-  // Prefer a question where the specific axis that's short of 5 answers is
+  // Prefer a question where the specific slider that's short of 5 answers is
   // the one left untouched, so the "go back" button lands somewhere that
   // actually fixes the deficiency rather than just any unanswered question.
-  const axisW = S.answeredCountW < 5; // connection/warmth
-  const axisS = S.answeredCountS < 5; // boundaries/structure
+  const axisW = S.answeredCountW < 5; // connection slider ("second")
+  const axisS = S.answeredCountS < 5; // boundaries slider ("first")
   for(let i=0;i<S.answers.length;i++){
     const a = S.answers[i];
     if(!a) return i;
@@ -1582,42 +1611,41 @@ function findFirstUnansweredIdx(){
   return 0;
 }
 function renderInsufficientScreen(){
-  const answeredCount = S.answers.filter(a => a && (a.boundariesTouched || a.connectionTouched)).length;
-  $('insufficient-msg').textContent = `כדי לקבל תוצאה, צריך לענות על לפחות 5 שאלות. עד עכשיו ענית על ${answeredCount}.`;
+  const countS = S.answeredCountS, countW = S.answeredCountW;
+  const firstCls = countS < 5 ? 'short-slider' : '';
+  const secondCls = countW < 5 ? 'short-slider' : '';
+  $('insufficient-msg').innerHTML = `כדי לקבל תוצאה, צריך לענות על כל אחד משני הסליידרים ב-5 שאלות לפחות. בסליידר <span class="${firstCls}">הראשון</span> ענית על ${countS}, ו<span class="${secondCls}">בשני</span> על ${countW}.`;
   $('go-answer-label').textContent = `חזרה לשאלה ${(S.pendingJumpIdx||0)+1}`;
   renderInsufficientRoute();
 }
 function renderInsufficientRoute(){
   const svg = $('route-svg-insufficient');
-  const total = S.questions.length;
-  const padX = 14, w = 380-padX*2, y = 23;
-  let html = `<line x1="${padX}" y1="${y}" x2="${380-padX}" y2="${y}" stroke="var(--sea-light)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>`;
+  const total = S.questions.length, perRow = 5;
+  const padX = 24, w = 380-padX*2, rowY = [25, 73];
+  let html = '';
   for(let i=0;i<total;i++){
-    const x = padX + ((total-1-i)/(total-1))*w;
+    const row = Math.floor(i/perRow), col = i%perRow;
+    const x = padX + ((perRow-1-col)/(perRow-1))*w; // question N+1 on the right within its row (RTL)
+    const y = rowY[row];
     const state = buoyStateForSummary(i);
-    const f = buoyFill(state);
-    const tappable = state==='skipped';
-    html += `<g class="buoy${tappable?' tappable':''}" data-i="${i}"${tappable?' role="button" tabindex="0"':''} aria-label="${buoyLabel(i,state)}">`;
-    html += `<circle cx="${x}" cy="${y}" r="7" fill="${f.fill}" fill-opacity="${f.opacity}" stroke="${f.stroke}" stroke-width="${state==='skipped'?3:2.5}"/>`;
-    if(state==='skipped') html += `<text x="${x}" y="${y+3.5}" text-anchor="middle" font-size="9" font-weight="900" fill="var(--coral)">!</text>`;
-    html += `</g>`;
+    html += buoyMarkup(i, x, y, 8, 22, state);
   }
   svg.innerHTML = html;
 }
 function goAnswerQuestion(i){
+  if(i !== S.idx) S.jumpHighlight = i;
   S.idx = i;
-  S.jumpHighlight = i;
   pushHistoryState('screen-quiz', {qIdx:S.idx});
   show('screen-quiz');
   renderQ();
 }
 $('route-svg-insufficient').addEventListener('click', e=>{
-  const g = e.target.closest('.buoy.tappable');
+  const g = e.target.closest('.buoy');
   if(g) goAnswerQuestion(+g.dataset.i);
 });
 $('route-svg-insufficient').addEventListener('keydown', e=>{
   if(e.key!=='Enter' && e.key!==' ') return;
-  const g = e.target.closest('.buoy.tappable');
+  const g = e.target.closest('.buoy');
   if(!g) return;
   e.preventDefault();
   goAnswerQuestion(+g.dataset.i);
