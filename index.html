@@ -143,8 +143,58 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   transition:all .18s var(--ease);
   -webkit-tap-highlight-color:transparent;
 }
-.btn-main:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
-.btn-main:active:not(:disabled){transform:scale(0.98);}
+.btn-main:disabled,
+.btn-main[aria-disabled="true"]{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.btn-main:active:not(:disabled):not([aria-disabled="true"]){transform:scale(0.98);}
+
+.start-btn-wrap{position:relative;}
+.start-tooltip{
+  position:absolute;
+  bottom:calc(100% + 10px);
+  left:50%;
+  transform:translateX(-50%) translateY(4px);
+  max-width:260px;
+  background:var(--navy);
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  line-height:1.4;
+  padding:9px 14px;
+  border-radius:10px;
+  text-align:center;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .15s var(--ease), transform .15s var(--ease);
+  z-index:40;
+}
+.start-tooltip::after{
+  content:'';
+  position:absolute;
+  top:100%; left:50%;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-top-color:var(--navy);
+}
+@media (hover:hover) and (pointer:fine){
+  .start-btn-wrap:has(#btn-start[aria-disabled="true"]):hover .start-tooltip,
+  .start-btn-wrap:has(#btn-start[aria-disabled="true"]):focus-within .start-tooltip{
+    opacity:1; transform:translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes attnShake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+.attn-flash{
+  animation:attnShake .4s ease;
+  outline:3px solid var(--coral);
+  outline-offset:5px;
+  border-radius:12px;
+}
 
 .btn-ghost{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
@@ -518,20 +568,20 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
       <div class="tagline">גלו את סגנון ההורות שלכם</div>
 
       <div class="chip-label">באיזה גיל הילד/ה?</div>
-      <div class="chip-row">
+      <div class="chip-row" id="age-chip-row">
         <button class="chip" data-group="age" data-value="toddlers">3-6</button>
         <button class="chip" data-group="age" data-value="school">7-12</button>
         <button class="chip" data-group="age" data-value="teens">13-18</button>
       </div>
 
       <div class="chip-label">איך לפנות אליך?</div>
-      <div class="chip-row">
+      <div class="chip-row" id="gender-chip-row">
         <button class="chip" data-group="gender" data-value="m">אבא</button>
         <button class="chip" data-group="gender" data-value="f">אמא</button>
         <button class="chip" data-group="gender" data-value="n">הורה</button>
       </div>
 
-      <div class="consent-row">
+      <div class="consent-row" id="consent-row">
         <input type="checkbox" id="chk-consent" autocomplete="off"/>
         <label for="chk-consent">זה כלי ללמידה עצמית, לא אבחון. <button type="button" class="link-btn" id="link-consent-more">עוד פרטים</button></label>
       </div>
@@ -544,9 +594,12 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
 
     <div class="pinned-wrap">
-      <button id="btn-start" class="btn-main" disabled>
-        <span>יוצאים לדרך</span><span>⛵</span>
-      </button>
+      <div class="start-btn-wrap">
+        <div class="start-tooltip" id="start-tooltip" role="tooltip"></div>
+        <button id="btn-start" class="btn-main" aria-disabled="true" aria-describedby="start-tooltip">
+          <span>יוצאים לדרך</span><span>⛵</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -960,8 +1013,28 @@ $('link-disclaimer-teaser').addEventListener('click', e=>openSheet('הבהרה',
 // load/reload so consent is never silently carried over.
 $('chk-consent').checked = false;
 
+function getMissingField(){
+  if(!S.age) return { msg:'בחרו את גיל הילד/ה', el:$('age-chip-row') };
+  if(!S.gender) return { msg:'בחרו איך לפנות אליכם', el:$('gender-chip-row') };
+  if(!$('chk-consent').checked) return { msg:'רגע לפני שמפליגים: סמנו את ההבהרה', el:$('consent-row') };
+  return null;
+}
 function updateStartBtn(){
-  $('btn-start').disabled = !(S.age && S.gender && $('chk-consent').checked);
+  const missing = getMissingField();
+  const btn = $('btn-start');
+  if(missing){
+    btn.setAttribute('aria-disabled','true');
+    $('start-tooltip').textContent = missing.msg;
+  } else {
+    btn.setAttribute('aria-disabled','false');
+    $('start-tooltip').textContent = '';
+  }
+}
+function flashAttention(el){
+  el.classList.remove('attn-flash');
+  void el.offsetWidth; // restart the animation if it's already mid-flash
+  el.classList.add('attn-flash');
+  setTimeout(()=>el.classList.remove('attn-flash'), 900);
 }
 document.querySelectorAll('.chip').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -973,8 +1046,16 @@ document.querySelectorAll('.chip').forEach(b=>{
   });
 });
 $('chk-consent').addEventListener('change', updateStartBtn);
+updateStartBtn();
 
 $('btn-start').addEventListener('click', ()=>{
+  const missing = getMissingField();
+  if(missing){
+    showToast(missing.msg, 2500);
+    missing.el.scrollIntoView({ behavior:'smooth', block:'center' });
+    flashAttention(missing.el);
+    return;
+  }
   S.questions = getQuestionsV2(S.age);
   S.idx = 0;
   S.answers = new Array(S.questions.length).fill(null);
@@ -1408,11 +1489,12 @@ $('btn-share').addEventListener('click', ()=>{
       .catch(()=>showToast('לא ניתן להעתיק'));
   }
 });
-function showToast(msg){
+function showToast(msg, duration){
   const el = $('toast');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), 2200);
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(()=>el.classList.remove('show'), duration || 2200);
 }
 
 /* ── Retake ── */
@@ -1420,7 +1502,7 @@ function resetQuiz(){
   Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
-  $('btn-start').disabled = true;
+  updateStartBtn();
   $('inp-name').value=''; $('inp-email').value='';
   $('status').textContent='';
   show('screen-start');
