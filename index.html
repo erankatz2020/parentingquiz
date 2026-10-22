@@ -284,6 +284,8 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 .route-wrap{padding:6px 18px 10px;}
 .route-svg{width:100%;height:46px;display:block;}
+.route-svg .buoy.tappable{cursor:pointer;}
+.route-svg .buoy.tappable:focus-visible circle{outline:2px solid var(--coral);outline-offset:2px;}
 
 .situation-card{
   background:var(--sea);
@@ -296,11 +298,31 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 .sliders{padding:0 18px;display:flex;flex-direction:column;gap:16px;}
 .slider-card{
+  position:relative;
   background:var(--card);
   border-radius:14px;
   padding:16px 14px 20px;
   box-shadow:0 1px 6px rgba(29,43,58,0.06);
+  outline:2px solid transparent;
+  outline-offset:2px;
+  transition:outline-color .2s var(--ease);
 }
+.slider-card.unanswered-highlight{outline-color:var(--coral);}
+.unanswered-flag{
+  display:none;
+  position:absolute; top:-11px; right:14px;
+  background:var(--coral); color:#fff;
+  font-size:11px; font-weight:800;
+  padding:3px 10px; border-radius:99px;
+  box-shadow:0 2px 6px rgba(232,115,90,0.4);
+}
+.slider-card.unanswered-highlight .unanswered-flag{display:inline-block;}
+.slider-caption{
+  display:none;
+  text-align:center; font-size:12px; color:var(--ink-soft);
+  margin-top:10px; opacity:.8;
+}
+.slider-card.unanswered .slider-caption{display:block;}
 .slider-endpoints{
   display:flex;justify-content:space-between;gap:10px;
   margin-bottom:18px;
@@ -320,6 +342,9 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 }
 .slider-track-wrap.connection .slider-track-visual{
   background:linear-gradient(90deg, var(--coral-light), var(--coral));
+}
+.slider-track-wrap.unanswered .slider-track-visual{
+  opacity:.4; filter:grayscale(.5);
 }
 .slider-track-wrap input[type=range]{
   -webkit-appearance:none;appearance:none;
@@ -356,9 +381,15 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .slider-thumb-svg{
   position:absolute; top:0;
   width:34px;height:30px;
-  transform:translate(-50%,-50%);
+  --pop:1;
+  transform:translate(-50%,-50%) scale(var(--pop));
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1), opacity .2s var(--ease), filter .2s var(--ease);
   pointer-events:none;
   filter:drop-shadow(0 2px 4px rgba(29,43,58,0.3));
+}
+.slider-thumb-svg.unanswered{
+  opacity:.55;
+  filter:grayscale(.65) drop-shadow(0 2px 4px rgba(29,43,58,0.3));
 }
 .kbd-hint-desktop{
   display:none;
@@ -666,31 +697,35 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     <div class="situation-card" id="situation-text"></div>
 
     <div class="sliders">
-      <div class="slider-card">
+      <div class="slider-card" id="card-boundaries">
+        <span class="unanswered-flag">עוד לא ענית כאן</span>
         <div class="slider-endpoints" dir="ltr">
           <span id="b-low"></span>
           <span id="b-high"></span>
         </div>
-        <div class="slider-track-wrap boundaries">
+        <div class="slider-track-wrap boundaries" id="wrap-boundaries">
           <div class="slider-track-visual" id="track-boundaries"></div>
           <input type="range" id="slider-boundaries" min="0" max="100" step="1" value="50"/>
           <svg class="slider-thumb-svg" id="thumb-boundaries" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
+        <p class="slider-caption">אם זה בדיוק באמצע, הקישו על הסמן</p>
       </div>
 
-      <div class="slider-card">
+      <div class="slider-card" id="card-connection">
+        <span class="unanswered-flag">עוד לא ענית כאן</span>
         <div class="slider-endpoints" dir="ltr">
           <span id="c-low"></span>
           <span id="c-high"></span>
         </div>
-        <div class="slider-track-wrap connection">
+        <div class="slider-track-wrap connection" id="wrap-connection">
           <div class="slider-track-visual" id="track-connection"></div>
           <input type="range" id="slider-connection" min="0" max="100" step="1" value="50"/>
           <svg class="slider-thumb-svg" id="thumb-connection" viewBox="0 0 34 30" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
+        <p class="slider-caption">אם זה בדיוק באמצע, הקישו על הסמן</p>
       </div>
 
-      <div class="kbd-hint-desktop">אפשר גם במקלדת: חיצים להזזה, Enter להמשך</div>
+      <div class="kbd-hint-desktop">אפשר גם במקלדת: חיצים להזזה, Tab למעבר לסליידר הבא, Enter להמשך</div>
     </div>
 
     <div class="slider-warning" id="slider-warning">לא הזזתם את הסליידרים. אם אף תשובה לא מתאימה, אפשר להמשיך, והשאלה הזו לא תיכלל בתוצאה.</div>
@@ -707,13 +742,16 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   <!-- ══ SCREEN: NOT ENOUGH ANSWERS ══ -->
   <div id="screen-insufficient" class="screen">
     <div class="pad">
-      <div class="card" style="text-align:center;margin-top:120px;">
-        <p style="font-size:17px;line-height:1.6;color:var(--navy);font-weight:700;">כדי לקבל תוצאה, צריך לענות על לפחות 5 שאלות</p>
+      <div class="card" style="text-align:center;margin-top:40px;">
+        <p id="insufficient-msg" style="font-size:17px;line-height:1.6;color:var(--navy);font-weight:700;"></p>
+        <div class="route-wrap" style="padding:18px 0 0;">
+          <svg class="route-svg" id="route-svg-insufficient" viewBox="0 0 380 46" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
       </div>
     </div>
     <div class="pinned-wrap">
       <button id="btn-go-answer" class="btn-main">
-        <span>לשאלה שעוד לא ענית עליה</span><span>←</span>
+        <span id="go-answer-label">חזרה לשאלה</span><span>←</span>
       </button>
     </div>
   </div>
@@ -1083,6 +1121,7 @@ function renderFromState(state){
     show('screen-quiz');
     renderQ();
   } else if(state.screen === 'screen-insufficient' && S.questions.length){
+    renderInsufficientScreen();
     show('screen-insufficient');
   } else {
     // loading/teaser/results depend on in-memory state that may no longer
@@ -1286,23 +1325,59 @@ function positionThumb(input, thumbSvg, trackVisual){
   const y = (trackRect.top - wrapRect.top) + trackRect.height/2;
   thumbSvg.style.left = x + 'px';
   thumbSvg.style.top = y + 'px';
-  thumbSvg.style.transform = 'translate(-50%,-50%)';
+  // base translate(-50%,-50%) + --pop scale both live in the stylesheet now,
+  // so the "pop" animation below doesn't fight this per-frame position update.
+}
+function popThumb(el){
+  el.style.setProperty('--pop', '1.3');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    el.style.setProperty('--pop', '1');
+  }));
+}
+function setSliderUIState(kind, touched){
+  $('card-'+kind).classList.toggle('unanswered', !touched);
+  $('card-'+kind).classList.remove('unanswered-highlight');
+  $('wrap-'+kind).classList.toggle('unanswered', !touched);
+  $('thumb-'+kind).classList.toggle('unanswered', !touched);
+}
+function markAnswered(kind){
+  const already = kind==='boundaries' ? S.touchedB : S.touchedC;
+  if(kind==='boundaries') S.touchedB = true; else S.touchedC = true;
+  if(already) return; // already answered this question -- skip the re-pop on every drag tick
+  setSliderUIState(kind, true);
+  popThumb($('thumb-'+kind));
+}
+function applyUnansweredHighlights(){
+  if(!S.touchedB) $('card-boundaries').classList.add('unanswered-highlight');
+  if(!S.touchedC) $('card-connection').classList.add('unanswered-highlight');
 }
 const ARROW_KEYS = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
-function wireSlider(inputId, thumbId, trackId, markTouched){
+function wireSlider(kind, inputId, thumbId, trackId){
   const input = $(inputId), thumb = $(thumbId), track = $(trackId);
   const reposition = ()=>positionThumb(input, thumb, track);
   input.addEventListener('input', reposition);
   window.addEventListener('resize', reposition);
-  // A slider only counts as "touched" when its value actually changes via
-  // user interaction (drag, tap-to-position, or the keyboard handler below,
-  // which dispatches this same 'input' event) -- not merely on focus/release.
-  input.addEventListener('input', markTouched);
+  // A slider counts as "answered" the moment the user deliberately interacts
+  // with it -- not just when the value changes (a tap that lands exactly on
+  // the current value, e.g. the 50 midpoint, fires no native 'input' event).
+  input.addEventListener('input', ()=>markAnswered(kind));
   // Save the live value to S.answers on every point a drag could end, not
   // just on next/back -- belt-and-braces against anything that might read
   // a stale value before the question changes.
   ['input','change','pointerup','touchend'].forEach(evt=>{
     input.addEventListener(evt, ()=>{ if(S.answers.length) storeCurrent(); });
+  });
+  // Tap-to-answer: a pointerdown/pointerup pair with minimal movement counts
+  // as a deliberate answer even when the value never changes. touch-action:none
+  // on this element already stops the browser turning the gesture into a page
+  // scroll, so any such tap is safe to count.
+  let downX=null, downY=null;
+  input.addEventListener('pointerdown', e=>{ downX=e.clientX; downY=e.clientY; });
+  input.addEventListener('pointerup', e=>{
+    if(downX===null) return;
+    const moved = Math.hypot(e.clientX-downX, e.clientY-downY);
+    downX=null; downY=null;
+    if(moved < 8) markAnswered(kind);
   });
   // Custom step sizes: 5 per arrow press, 20 with Shift. The input is
   // forced direction:ltr (so low=left/high=right visually, matching the
@@ -1321,8 +1396,43 @@ function wireSlider(inputId, thumbId, trackId, markTouched){
   });
   return reposition;
 }
-const repositionBoundaries = wireSlider('slider-boundaries','thumb-boundaries','track-boundaries', ()=>{ S.touchedB=true; });
-const repositionConnection = wireSlider('slider-connection','thumb-connection','track-connection', ()=>{ S.touchedC=true; });
+const repositionBoundaries = wireSlider('boundaries','slider-boundaries','thumb-boundaries','track-boundaries');
+const repositionConnection = wireSlider('connection','slider-connection','thumb-connection','track-connection');
+
+// Buoy state for question i: 'current' (own question, shown as the boat),
+// 'answered' (both sliders touched), 'half' (one touched), 'skipped' (neither),
+// or 'upcoming' (not visited yet). buoyStateForSummary() is the same without
+// the 'current' special-case, used on the "not enough answers" screen.
+function buoyStateForSummary(i){
+  const a = S.answers[i];
+  if(!a) return 'upcoming';
+  const b = a.boundariesTouched, c = a.connectionTouched;
+  if(b && c) return 'answered';
+  if(!b && !c) return 'skipped';
+  return 'half';
+}
+function buoyState(i){
+  if(i === S.idx) return 'current';
+  return buoyStateForSummary(i);
+}
+function buoyFill(state){
+  switch(state){
+    case 'answered': return { fill:'var(--sea)', stroke:'var(--sea)', opacity:'1' };
+    case 'half':     return { fill:'var(--sea)', stroke:'var(--sea)', opacity:'0.45' };
+    case 'skipped':  return { fill:'var(--sand)', stroke:'var(--coral)', opacity:'1' };
+    default:         return { fill:'var(--sand)', stroke:'var(--sea)', opacity:'1' };
+  }
+}
+function buoyLabel(i, state){
+  const map = { answered:'נענתה', half:'נענתה חלקית', skipped:'לא נענתה', upcoming:'טרם הגעת אליה', current:'השאלה הנוכחית' };
+  return `שאלה ${i+1}, ${map[state]}`;
+}
+function jumpToBuoy(i){
+  storeCurrent();
+  S.idx = i;
+  pushHistoryState('screen-quiz', {qIdx:S.idx});
+  renderQ();
+}
 
 function buildRoute(){
   const svg = $('route-svg');
@@ -1331,17 +1441,43 @@ function buildRoute(){
   let html = `<line x1="${padX}" y1="${y}" x2="${380-padX}" y2="${y}" stroke="var(--sea-light)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>`;
   for(let i=0;i<total;i++){
     const x = padX + ((total-1-i)/(total-1))*w; // question 1 on the right (RTL start)
-    html += `<circle class="buoy" data-i="${i}" cx="${x}" cy="${y}" r="6" fill="var(--sand)" stroke="var(--sea)" stroke-width="2.5"/>`;
+    html += `<g class="buoy" data-i="${i}">`;
+    html += `<circle cx="${x}" cy="${y}" r="6" fill="var(--sand)" stroke="var(--sea)" stroke-width="2.5"/>`;
+    html += `<text class="buoy-mark" x="${x}" y="${y+3.5}" text-anchor="middle" font-size="9" font-weight="900" fill="var(--coral)" style="display:none;">!</text>`;
+    html += `</g>`;
   }
   html += `<g id="route-boat" style="transition:transform .4s var(--ease);"><text x="0" y="${y+5}" text-anchor="middle" font-size="16">⛵</text></g>`;
   svg.innerHTML = html;
   S._routePadX = padX; S._routeW = w; S._routeY = y;
 }
+$('route-svg').addEventListener('click', e=>{
+  const g = e.target.closest('.buoy.tappable');
+  if(g) jumpToBuoy(+g.dataset.i);
+});
+$('route-svg').addEventListener('keydown', e=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const g = e.target.closest('.buoy.tappable');
+  if(!g) return;
+  e.preventDefault();
+  jumpToBuoy(+g.dataset.i);
+});
 function updateRoute(){
   const total = S.questions.length;
-  document.querySelectorAll('#route-svg .buoy').forEach(b=>{
-    const i = +b.dataset.i;
-    b.setAttribute('fill', i<=S.idx ? 'var(--sea)' : 'var(--sand)');
+  $('route-svg').querySelectorAll('.buoy').forEach(g=>{
+    const i = +g.dataset.i;
+    const state = buoyState(i);
+    const f = buoyFill(state);
+    const circle = g.querySelector('circle');
+    circle.setAttribute('fill', f.fill);
+    circle.setAttribute('fill-opacity', f.opacity);
+    circle.setAttribute('stroke', f.stroke);
+    circle.setAttribute('stroke-width', state==='skipped' ? 3 : 2.5);
+    g.querySelector('.buoy-mark').style.display = state==='skipped' ? '' : 'none';
+    g.setAttribute('aria-label', buoyLabel(i, state));
+    const tappable = i < S.idx;
+    g.classList.toggle('tappable', tappable);
+    if(tappable){ g.setAttribute('role','button'); g.setAttribute('tabindex','0'); }
+    else { g.removeAttribute('role'); g.removeAttribute('tabindex'); }
   });
   const x = S._routePadX + ((total-1-S.idx)/(total-1))*S._routeW;
   $('route-boat').setAttribute('transform', `translate(${x},-2)`);
@@ -1367,9 +1503,16 @@ function renderQ(){
   S.touchedC = saved ? !!saved.connectionTouched : false;
   S.nextConfirmPending = false;
   $('slider-warning').classList.remove('show');
+  setSliderUIState('boundaries', S.touchedB);
+  setSliderUIState('connection', S.touchedC);
   repositionBoundaries(); repositionConnection();
   updateRoute();
   $('slider-boundaries').focus();
+
+  if(S.jumpHighlight === S.idx){
+    applyUnansweredHighlights();
+    S.jumpHighlight = null;
+  }
 }
 
 function storeCurrent(){
@@ -1386,6 +1529,7 @@ $('btn-next').addEventListener('click', ()=>{
     S.nextConfirmPending = true;
     $('slider-warning').classList.add('show');
     $('next-label').textContent = 'להמשיך בכל זאת';
+    applyUnansweredHighlights();
     return;
   }
   if(!S.touchedB && !S.touchedC){
@@ -1414,6 +1558,7 @@ function finishQuiz(){
   const minCount = Math.min(S.answeredCountW, S.answeredCountS);
   if(minCount < 5){
     S.pendingJumpIdx = findFirstUnansweredIdx();
+    renderInsufficientScreen();
     pushHistoryState('screen-insufficient');
     show('screen-insufficient');
     return;
@@ -1423,17 +1568,62 @@ function finishQuiz(){
   runLoadingAnimation();
 }
 function findFirstUnansweredIdx(){
+  // Prefer a question where the specific axis that's short of 5 answers is
+  // the one left untouched, so the "go back" button lands somewhere that
+  // actually fixes the deficiency rather than just any unanswered question.
+  const axisW = S.answeredCountW < 5; // connection/warmth
+  const axisS = S.answeredCountS < 5; // boundaries/structure
   for(let i=0;i<S.answers.length;i++){
     const a = S.answers[i];
-    if(!a || (!a.boundariesTouched && !a.connectionTouched)) return i;
+    if(!a) return i;
+    if(axisW && !a.connectionTouched) return i;
+    if(axisS && !a.boundariesTouched) return i;
   }
   return 0;
 }
-$('btn-go-answer').addEventListener('click', ()=>{
-  S.idx = S.pendingJumpIdx || 0;
+function renderInsufficientScreen(){
+  const answeredCount = S.answers.filter(a => a && (a.boundariesTouched || a.connectionTouched)).length;
+  $('insufficient-msg').textContent = `כדי לקבל תוצאה, צריך לענות על לפחות 5 שאלות. עד עכשיו ענית על ${answeredCount}.`;
+  $('go-answer-label').textContent = `חזרה לשאלה ${(S.pendingJumpIdx||0)+1}`;
+  renderInsufficientRoute();
+}
+function renderInsufficientRoute(){
+  const svg = $('route-svg-insufficient');
+  const total = S.questions.length;
+  const padX = 14, w = 380-padX*2, y = 23;
+  let html = `<line x1="${padX}" y1="${y}" x2="${380-padX}" y2="${y}" stroke="var(--sea-light)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>`;
+  for(let i=0;i<total;i++){
+    const x = padX + ((total-1-i)/(total-1))*w;
+    const state = buoyStateForSummary(i);
+    const f = buoyFill(state);
+    const tappable = state==='skipped';
+    html += `<g class="buoy${tappable?' tappable':''}" data-i="${i}"${tappable?' role="button" tabindex="0"':''} aria-label="${buoyLabel(i,state)}">`;
+    html += `<circle cx="${x}" cy="${y}" r="7" fill="${f.fill}" fill-opacity="${f.opacity}" stroke="${f.stroke}" stroke-width="${state==='skipped'?3:2.5}"/>`;
+    if(state==='skipped') html += `<text x="${x}" y="${y+3.5}" text-anchor="middle" font-size="9" font-weight="900" fill="var(--coral)">!</text>`;
+    html += `</g>`;
+  }
+  svg.innerHTML = html;
+}
+function goAnswerQuestion(i){
+  S.idx = i;
+  S.jumpHighlight = i;
   pushHistoryState('screen-quiz', {qIdx:S.idx});
   show('screen-quiz');
   renderQ();
+}
+$('route-svg-insufficient').addEventListener('click', e=>{
+  const g = e.target.closest('.buoy.tappable');
+  if(g) goAnswerQuestion(+g.dataset.i);
+});
+$('route-svg-insufficient').addEventListener('keydown', e=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const g = e.target.closest('.buoy.tappable');
+  if(!g) return;
+  e.preventDefault();
+  goAnswerQuestion(+g.dataset.i);
+});
+$('btn-go-answer').addEventListener('click', ()=>{
+  goAnswerQuestion(S.pendingJumpIdx || 0);
 });
 
 /* ── Keyboard: global shortcuts ── */
