@@ -63,7 +63,8 @@ body{
   background:var(--sand);
   color:var(--navy);
   direction:rtl;
-  min-height:100vh;
+  min-height:100vh; /* fallback for browsers without dvh support */
+  min-height:100dvh;
   font-style:normal;
 }
 em,i{font-style:normal;}
@@ -72,11 +73,17 @@ em,i{font-style:normal;}
   max-width:420px;
   margin:0 auto;
   min-height:100vh;
+  min-height:100dvh;
   position:relative;
-  padding-bottom:96px;
+  /* Reserves space for whichever pinned button bar is on the active screen,
+     measured in JS (updatePinnedSpace()) since button height/wrapping can
+     vary by screen and viewport -- a fixed guess here previously left
+     content hidden behind the bar on some screens/sizes. */
+  padding-bottom:calc(var(--pinned-space, 96px) + env(safe-area-inset-bottom) + 16px);
 }
 
 .screen{display:none;}
+#screen-teaser{overflow-x:clip;} /* belt-and-suspenders: nothing on this screen (the chest's glow/rays) can widen the page, no matter what */
 .screen.active{display:block;animation:screenSlideIn .25s cubic-bezier(.3,1.25,.5,1);}
 @keyframes screenSlideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
 @media (prefers-reduced-motion: reduce){
@@ -645,26 +652,35 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 }
 .chest-card{
   position:absolute; left:50%; top:0;
-  width:calc(var(--u) * 124px); height:calc(var(--u) * 150px);
+  width:calc(var(--u) * 124px);
+  /* Height is intrinsic (fits its content) rather than a fixed design value
+     that left roughly a third of the card empty below the tagline. Because
+     the height now varies with the actual rendered text, the rise distance
+     can't be a fixed calc() either -- positionChestCard() measures the real
+     height once content is in and sets --chest-card-rest-y so the card's
+     bottom always lands ~14px behind the front body's top edge, whichever
+     persona/tagline length renders. */
+  --chest-card-rest-y: calc(var(--u) * 40px); /* fallback until JS computes the real value */
   transform:translate(-50%, calc(var(--u) * 249px));
   opacity:0;
+  border:3px solid var(--coral);
   border-radius:calc(var(--u) * 10px);
   overflow:hidden;
   box-shadow:0 4px 14px rgba(29,43,58,.25);
   transition:transform .75s cubic-bezier(.3,1.3,.5,1) .55s, opacity .15s linear .55s;
 }
 .chest-stage.open .chest-card{
-  transform:translate(-50%, calc(var(--u) * 40px));
+  transform:translate(-50%, var(--chest-card-rest-y));
   opacity:1;
 }
 .chest-card-inner{
-  width:100%; height:100%;
+  width:100%;
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  padding:calc(var(--u) * 6px) calc(var(--u) * 6px) calc(var(--u) * 8px);
+  padding:calc(var(--u) * 6px) calc(var(--u) * 6px) calc(var(--u) * 10px);
   text-align:center;
 }
 .chest-card-char{
-  width:100%; height:calc(var(--u) * 64px);
+  width:100%; height:calc(var(--u) * 72px);
   display:flex; align-items:center; justify-content:center;
 }
 .chest-card-char img{max-width:88%; max-height:100%; object-fit:contain;}
@@ -687,6 +703,14 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   pointer-events:none;
   z-index:0;
   transition:opacity .5s var(--ease) .3s, transform .7s var(--ease) .3s;
+  /* .glow-rays spins continuously inside this box -- a rotating square's
+     axis-aligned bounding box (what scrollWidth/ink-overflow measure) grows
+     up to sqrt(2)x larger than its resting size at odd angles, so without
+     this the page's horizontal extent would balloon and shrink every
+     frame as the rays turn. overflow:hidden clips the rotation to this
+     box's own (never-rotating) footprint. */
+  overflow:hidden;
+  border-radius:50%;
 }
 .chest-stage.open .glow{opacity:1; transform:translate(-50%,-50%) scale(1);}
 .glow-halo{
@@ -1625,6 +1649,38 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $(id).classList.add('active');
   window.scrollTo({top:0});
+  updatePinnedSpace();
+}
+// Measures the active screen's own pinned-button bar (not just the bare
+// button -- its own padding needs clearing too) and reserves exactly that
+// much space at the bottom of #app, so scrollable content never ends up
+// hidden behind it regardless of which screen/button-label/viewport this is.
+function updatePinnedSpace(){
+  const pinned = document.querySelector('.screen.active .pinned-wrap');
+  const h = pinned ? pinned.getBoundingClientRect().height : 96;
+  document.getElementById('app').style.setProperty('--pinned-space', h + 'px');
+}
+window.addEventListener('resize', updatePinnedSpace);
+if(window.visualViewport) window.visualViewport.addEventListener('resize', updatePinnedSpace);
+updatePinnedSpace(); // screen-start is active from static markup, with no show() call to trigger this otherwise
+
+// Keeps a focused input (and whatever sits right after it, e.g. the
+// consent line) clear of the on-screen keyboard: scrolls it into view on
+// focus, then again once visualViewport reports the keyboard has actually
+// finished resizing the visible area (focus itself often fires before that).
+document.addEventListener('focusin', e=>{
+  const el = e.target;
+  if(el.tagName==='INPUT' || el.tagName==='TEXTAREA'){
+    setTimeout(()=>{ el.scrollIntoView({ block:'center', behavior:'smooth' }); }, 50);
+  }
+});
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', ()=>{
+    const active = document.activeElement;
+    if(active && (active.tagName==='INPUT' || active.tagName==='TEXTAREA')){
+      active.scrollIntoView({ block:'center', behavior:'smooth' });
+    }
+  });
 }
 
 /* ── History API: back/forward moves between questions and screens ── */
@@ -2404,6 +2460,23 @@ function clearChestCardContent(){
   inner.style.background = '';
   inner.innerHTML = '';
 }
+// The card's height is intrinsic (fits its content), so the distance it
+// needs to rise varies with the actual rendered text -- measure it after
+// renderChestCardContent() and set --chest-card-rest-y so its bottom
+// always ends up ~14px behind the front body's top edge.
+function positionChestCard(){
+  const stage = $('chest-stage'), card = $('chest-card');
+  const stageWidth = stage.getBoundingClientRect().width;
+  if(stageWidth <= 0) return; // not laid out yet -- the CSS fallback value stays in effect
+  const u = stageWidth / 200;
+  const cardHeightPx = card.getBoundingClientRect().height;
+  // The front SVG is bottom-anchored (viewBox height 170 inside the 262-tall
+  // stage), so its own y=86 ("M30 86H170..." -- the body's top edge) maps to
+  // stage-design-y (262-170)+86 = 178; the card's risen bottom should land
+  // 14 design units behind that, i.e. at design-y 164.
+  const restY = 164 * u - cardHeightPx;
+  card.style.setProperty('--chest-card-rest-y', restY + 'px');
+}
 // Restores the chest to its correct state whenever the teaser screen is
 // (re)built: closed and ready on first arrival, or already open -- instantly,
 // no animation -- if S.chestOpened is already true for this session.
@@ -2412,6 +2485,7 @@ function setupChestState(){
   if(S.chestOpened){
     stage.classList.add('open', 'no-anim');
     renderChestCardContent();
+    positionChestCard();
     $('chest-title').textContent = 'הפרופיל שלכם';
     $('chest-subtitle').textContent = '';
     $('btn-submit-label').textContent = 'לפרופיל המלא';
@@ -2425,6 +2499,12 @@ function setupChestState(){
     setGateVisible(false);
   }
 }
+function scrollChestTitleIntoView(){
+  const title = $('chest-title');
+  const rect = title.getBoundingClientRect();
+  const targetY = window.scrollY + rect.top - 16;
+  window.scrollTo({ top: Math.max(0, targetY), behavior:'smooth' });
+}
 function openChest(){
   if(S.chestOpened) return;
   S.chestOpened = true;
@@ -2434,8 +2514,10 @@ function openChest(){
   stage.classList.add('open');
   haptic('chestOpen'); // [15,60,25] -- a creak and a thud, fired synchronously in this click handler
   trackEvent('chest_open', { persona:S.persona });
+  scrollChestTitleIntoView();
 
   renderChestCardContent();
+  positionChestCard();
 
   // Reduced motion compresses the ~1.3s sequence down to the ~400-500ms
   // fade the CSS actually runs, so these external reveals stay proportional
@@ -2455,6 +2537,7 @@ function openChest(){
   }, seqEndDelay);
 }
 $('chest-stage').addEventListener('click', openChest);
+window.addEventListener('resize', ()=>{ if(S.chestOpened) positionChestCard(); });
 function renderDots(containerId, level, cls){
   const el = $(containerId);
   el.innerHTML = '';
