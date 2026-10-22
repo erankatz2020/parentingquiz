@@ -263,6 +263,44 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   font-size:1.1rem;color:var(--navy);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
+
+/* ── share modal (desktop) ── */
+.share-modal-backdrop{
+  position:fixed;inset:0;background:rgba(29,43,58,0.5);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s var(--ease);
+  z-index:95;padding:20px;
+}
+.share-modal-backdrop.open{opacity:1;pointer-events:auto;}
+.share-modal{
+  position:relative;
+  background:var(--card);border-radius:18px;
+  max-width:320px;width:100%;
+  padding:24px 20px 20px;
+  box-shadow:0 12px 40px rgba(29,43,58,0.25);
+  transform:scale(.96);transition:transform .2s var(--ease);
+}
+.share-modal-backdrop.open .share-modal{transform:scale(1);}
+.share-modal-close{
+  position:absolute;top:10px;left:10px;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--sand);border:none;cursor:pointer;
+  font-size:1rem;color:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+}
+.share-modal-title{
+  font-family:var(--font-display);font-weight:900;font-size:1.1rem;
+  color:var(--navy);text-align:center;margin-bottom:14px;
+}
+.share-modal-preview-wrap{display:flex;justify-content:center;margin-bottom:16px;}
+.share-modal-preview-wrap.empty{display:none;}
+.share-modal-preview{
+  width:140px;border-radius:12px;
+  box-shadow:0 4px 16px rgba(29,43,58,0.18);
+  display:block;
+}
+.share-modal-actions{display:flex;flex-direction:column;gap:10px;}
+.share-modal-actions button{width:100%;}
 .sheet-body{font-size:.9rem;line-height:1.75;color:var(--ink-soft);}
 .sheet-body p{margin-bottom:12px;}
 .sheet-body p:last-child{margin-bottom:0;}
@@ -996,6 +1034,22 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 <div class="toast" id="toast"></div>
 
+<!-- ══ SHARE MODAL (desktop fallback) ══ -->
+<div class="share-modal-backdrop" id="share-modal-backdrop">
+  <div class="share-modal" id="share-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
+    <button class="share-modal-close" id="share-modal-close" aria-label="סגירה" type="button">✕</button>
+    <h3 id="share-modal-title" class="share-modal-title">שיתוף הכרטיס</h3>
+    <div class="share-modal-preview-wrap" id="share-modal-preview-wrap">
+      <img class="share-modal-preview" id="share-modal-preview" alt="" />
+    </div>
+    <div class="share-modal-actions">
+      <button class="btn-ghost" id="share-modal-download" type="button">הורדת התמונה</button>
+      <button class="btn-ghost" id="share-modal-copy" type="button">העתקת הטקסט והקישור</button>
+      <button class="btn-ghost" id="share-modal-whatsapp" type="button">שיתוף בוואטסאפ</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="js/personas.js"></script>
 <script src="js/questions_v2.js"></script>
@@ -1661,6 +1715,11 @@ document.addEventListener('keydown', e=>{
     closeSheet();
     return;
   }
+  // Escape closes the desktop share modal and returns focus to the share button
+  if(e.key==='Escape' && $('share-modal-backdrop').classList.contains('open')){
+    closeShareModal();
+    return;
+  }
 
   if(!$('screen-quiz').classList.contains('active')) return;
 
@@ -1922,43 +1981,150 @@ function downloadBlob(blob, filename){
 // so the share tap can call navigator.share() synchronously (Safari/iOS
 // requires the call to happen inside the user-activation window -- any
 // await before it, like generating the canvas, can make the call fail).
-let shareCardFile = null, shareCardReady = false;
+let shareCardFile = null, shareCardReady = false, prerenderFailed = false;
 function prerenderShareCard(){
   shareCardReady = false;
   shareCardFile = null;
+  prerenderFailed = false;
   renderShareCard()
     .then(canvas => new Promise(res => canvas.toBlob(res, 'image/png')))
     .then(blob => {
       shareCardFile = new File([blob], 'parenting-profile.png', { type:'image/png' });
       shareCardReady = true;
     })
-    .catch(e => console.warn('share card prerender failed:', e));
+    .catch(e => {
+      prerenderFailed = true;
+      if(ANALYTICS_DEBUG) console.warn('[share] pre-render failed:', e);
+    });
+}
+// Resolves true once the share image is ready, or false if the pre-render has
+// already failed or doesn't finish within ~6s -- callers fall back to
+// link-only sharing instead of leaving the share button stuck waiting forever.
+function waitForShareCard(){
+  if(shareCardReady && shareCardFile) return Promise.resolve(true);
+  if(prerenderFailed) return Promise.resolve(false);
+  return new Promise(resolve => {
+    const start = Date.now();
+    (function check(){
+      if(shareCardReady && shareCardFile) return resolve(true);
+      if(prerenderFailed) return resolve(false);
+      if(Date.now()-start > 6000){
+        // Remember this so later clicks fall back immediately instead of
+        // waiting another 6s for a render that's already shown it won't finish.
+        prerenderFailed = true;
+        if(ANALYTICS_DEBUG) console.warn('[share] pre-render timed out after 6s');
+        return resolve(false);
+      }
+      setTimeout(check, 150);
+    })();
+  });
 }
 
-$('btn-share').addEventListener('click', ()=>{
-  if(navigator.share){
-    if(!shareCardReady || !shareCardFile){
-      showToast('רגע, מכינים את הכרטיס...');
-      return;
-    }
-    const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
-    const text = `יצא לי ${title} בשאלון "איזה הורה אני בעצם?" 🧭 ואתם? https://quiz.theparentingmap.com/`;
+function shareMeta(){
+  const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
+  return {
+    title: 'איזה הורה אני בעצם?',
+    text: `יצא לי ${title} בשאלון "איזה הורה אני בעצם?" 🧭 ואתם? https://quiz.theparentingmap.com/`,
+  };
+}
 
-    if(navigator.canShare && navigator.canShare({ files:[shareCardFile] })){
-      trackEvent('share_click', { persona:S.persona, method:'share_sheet' });
-      navigator.share({ files:[shareCardFile], title:'איזה הורה אני בעצם?', text }).catch(()=>{ /* user cancelled */ });
-    } else {
-      trackEvent('share_click', { persona:S.persona, method:'download' });
-      downloadBlob(shareCardFile, 'parenting-profile.png');
-      showToast('התמונה נשמרה, אפשר לשתף אותה');
+$('btn-share').addEventListener('click', async ()=>{
+  const { title, text } = shareMeta();
+  const isTouch = !window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  let imageReady = shareCardReady && !!shareCardFile;
+  if(!imageReady && !prerenderFailed){
+    showToast('רגע, מכינים את הכרטיס...');
+    imageReady = await waitForShareCard();
+  }
+
+  let canShareFile = false;
+  if(isTouch && imageReady){
+    try{ canShareFile = !!(navigator.share && navigator.canShare && navigator.canShare({ files:[shareCardFile] })); }
+    catch(e){ if(ANALYTICS_DEBUG) console.warn('[share] canShare threw:', e); canShareFile = false; }
+  }
+
+  if(canShareFile){
+    trackEvent('share_click', { persona:S.persona, method:'share_sheet' });
+    try{
+      await navigator.share({ files:[shareCardFile], title, text });
+    }catch(e){
+      if(e && e.name==='AbortError') return; // user closed the native share sheet -- don't fall back
+      if(ANALYTICS_DEBUG) console.warn('[share] navigator.share (file) failed:', e);
+      shareLinkOnly(isTouch, title, text);
     }
+    return;
+  }
+  shareLinkOnly(isTouch, title, text);
+});
+
+// The button is never "dead": whenever the image isn't shareable (not ready,
+// pre-render failed/timed out, or this platform can't share files), fall back
+// to sharing the link/text only -- via the native sheet on touch devices, or
+// the desktop modal everywhere else.
+function shareLinkOnly(isTouch, title, text){
+  if(isTouch && navigator.share){
+    trackEvent('share_click', { persona:S.persona, method:'share_sheet' });
+    navigator.share({ title, text }).catch(e=>{
+      if(e && e.name==='AbortError') return;
+      if(ANALYTICS_DEBUG) console.warn('[share] navigator.share (link-only) failed:', e);
+    });
+    return;
+  }
+  openShareModal(text);
+}
+
+/* ── Share modal (desktop / no file-share support) ── */
+let shareModalOpener = null;
+function openShareModal(text){
+  shareModalOpener = document.activeElement;
+  $('share-modal').dataset.shareText = text;
+  const wrap = $('share-modal-preview-wrap'), img = $('share-modal-preview');
+  if(shareCardReady && shareCardFile){
+    img.src = URL.createObjectURL(shareCardFile);
+    wrap.classList.remove('empty');
   } else {
-    trackEvent('share_click', { persona:S.persona, method:'copy_link' });
-    navigator.clipboard.writeText('https://quiz.theparentingmap.com/')
-      .then(()=>showToast('הקישור הועתק'))
-      .catch(()=>showToast('לא ניתן להעתיק'));
+    wrap.classList.add('empty');
+  }
+  $('share-modal-backdrop').classList.add('open');
+  $('share-modal-close').focus();
+}
+function closeShareModal(){
+  $('share-modal-backdrop').classList.remove('open');
+  const img = $('share-modal-preview');
+  if(img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
+  img.removeAttribute('src');
+  if(shareModalOpener){ shareModalOpener.focus(); shareModalOpener = null; }
+}
+$('share-modal-backdrop').addEventListener('click', e=>{
+  if(e.target === $('share-modal-backdrop')) closeShareModal();
+});
+$('share-modal-close').addEventListener('click', closeShareModal);
+$('share-modal-download').addEventListener('click', ()=>{
+  if(shareCardReady && shareCardFile){
+    trackEvent('share_click', { persona:S.persona, method:'download' });
+    downloadBlob(shareCardFile, 'parenting-profile.png');
+    showToast('התמונה נשמרה');
+  } else {
+    showToast('התמונה עדיין לא מוכנה, אפשר לנסות שוב בעוד רגע');
   }
 });
+$('share-modal-copy').addEventListener('click', async ()=>{
+  trackEvent('share_click', { persona:S.persona, method:'copy_link' });
+  try{
+    await navigator.clipboard.writeText($('share-modal').dataset.shareText || '');
+    showToast('הועתק');
+  }catch(e){
+    if(ANALYTICS_DEBUG) console.warn('[share] clipboard copy failed:', e);
+    showToast('לא ניתן להעתיק');
+  }
+});
+$('share-modal-whatsapp').addEventListener('click', ()=>{
+  trackEvent('share_click', { persona:S.persona, method:'whatsapp_link' });
+  const waUrl = `https://wa.me/?text=${encodeURIComponent($('share-modal').dataset.shareText || '')}`;
+  window.open(waUrl, '_blank', 'noopener');
+});
+
 function showToast(msg, duration){
   const el = $('toast');
   el.textContent = msg;
