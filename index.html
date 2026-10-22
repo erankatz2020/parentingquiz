@@ -35,7 +35,26 @@
   --border:rgba(29,43,58,0.1);
   --font-display:'Playfair Display', Georgia, serif;
   --font-body:'Assistant', system-ui, sans-serif;
+  --font-heading-game:'Rubik', var(--font-body), sans-serif;
   --ease:cubic-bezier(0.16,1,0.3,1);
+}
+/* Self-hosted (no Google Fonts request): Rubik is a variable font, so one
+   file per subset covers both weight 700 and 800 via its wght axis. */
+@font-face{
+  font-family:'Rubik';
+  font-style:normal;
+  font-weight:700 800;
+  font-display:swap;
+  src:url('assets/fonts/rubik-hebrew.woff2') format('woff2');
+  unicode-range:U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face{
+  font-family:'Rubik';
+  font-style:normal;
+  font-weight:700 800;
+  font-display:swap;
+  src:url('assets/fonts/rubik-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:16px;-webkit-text-size-adjust:100%;}
@@ -58,8 +77,12 @@ em,i{font-style:normal;}
 }
 
 .screen{display:none;}
-.screen.active{display:block;animation:fadeUp .4s var(--ease);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.screen.active{display:block;animation:screenSlideIn .25s cubic-bezier(.3,1.25,.5,1);}
+@keyframes screenSlideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+@media (prefers-reduced-motion: reduce){
+  .screen.active{animation:screenFadeIn .2s linear;}
+}
+@keyframes screenFadeIn{from{opacity:0;}to{opacity:1;}}
 
 .pad{padding:20px 18px;}
 
@@ -72,7 +95,7 @@ em,i{font-style:normal;}
 
 h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
-.headline{font-size:1.9rem;line-height:1.2;text-align:center;margin:18px 0 6px;}
+.headline{font-family:var(--font-heading-game);font-weight:800;font-size:1.9rem;line-height:1.2;text-align:center;margin:18px 0 6px;}
 .tagline{font-size:1rem;color:var(--sea);text-align:center;font-weight:700;margin-bottom:24px;}
 
 /* ── chips ── */
@@ -88,14 +111,26 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   font-weight:700;font-size:.95rem;
   color:var(--ink-soft);
   cursor:pointer;
-  transition:all .18s var(--ease);
+  box-shadow:0 3px 0 #D9D0C2;
+  transition:transform .08s var(--ease), box-shadow .08s var(--ease), background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease);
   -webkit-tap-highlight-color:transparent;
 }
-.chip:active{transform:scale(0.97);}
+.chip:active{transform:translateY(2px); box-shadow:0 1px 0 #D9D0C2;}
 .chip.selected{
   background:var(--sea);
   border-color:var(--sea);
   color:#fff;
+  box-shadow:0 3px 0 #17535A;
+  animation:chipBounce .3s cubic-bezier(.34,1.56,.64,1);
+}
+.chip.selected:active{box-shadow:0 1px 0 #17535A;}
+@keyframes chipBounce{
+  0%{transform:scale(0.9);}
+  60%{transform:scale(1.06);}
+  100%{transform:scale(1);}
+}
+@media (prefers-reduced-motion: reduce){
+  .chip.selected{animation:none;}
 }
 
 /* ── consent row ── */
@@ -167,13 +202,19 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   border:none;border-radius:16px;
   font-family:var(--font-body);font-size:1.02rem;font-weight:800;
   cursor:pointer;
-  box-shadow:0 4px 16px rgba(232,115,90,0.35);
-  transition:all .18s var(--ease);
+  box-shadow:0 4px 0 #B9533D;
+  transition:transform .08s var(--ease), box-shadow .08s var(--ease), background .18s var(--ease), opacity .18s var(--ease);
   -webkit-tap-highlight-color:transparent;
 }
 .btn-main:disabled,
-.btn-main[aria-disabled="true"]{opacity:.4;cursor:not-allowed;box-shadow:none;}
-.btn-main:active:not(:disabled):not([aria-disabled="true"]){transform:scale(0.98);}
+.btn-main[aria-disabled="true"]{
+  background:#D9D0C2; color:var(--ink-soft);
+  box-shadow:none; cursor:not-allowed;
+}
+.btn-main:active:not(:disabled):not([aria-disabled="true"]){
+  transform:translateY(3px);
+  box-shadow:0 1px 0 #B9533D;
+}
 
 .start-btn-wrap{position:relative;}
 .start-tooltip{
@@ -342,6 +383,11 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   padding:18px 18px;
   margin:4px 18px 16px;
   font-size:17px;line-height:1.6;
+  animation:situationSlideIn .3s cubic-bezier(.3,1.25,.5,1);
+}
+@keyframes situationSlideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@media (prefers-reduced-motion: reduce){
+  .situation-card{animation:none;}
 }
 
 .sliders{padding:0 18px;display:flex;flex-direction:column;gap:16px;}
@@ -491,6 +537,11 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
 /* ── teaser / results ── */
 .center{text-align:center;}
+.sr-only{
+  position:absolute; width:1px; height:1px;
+  padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
 .persona-card{
   display:none;
   background:var(--card);
@@ -509,6 +560,89 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 @media (prefers-reduced-motion: reduce){
   .persona-card.show{animation:none;}
 }
+
+/* ── flip card (teaser reveal) ── */
+.card-reveal-prompt{
+  text-align:center; font-size:14px; font-weight:700; color:var(--sea);
+  margin:0 18px 10px; transition:opacity .2s var(--ease);
+}
+.card-reveal-prompt.hide{display:none;}
+.flip-card-scene{
+  position:relative;
+  margin:0 18px 18px;
+  perspective:1400px;
+}
+.flip-card{
+  all:unset;
+  box-sizing:border-box;
+  display:block;
+  width:100%;
+  position:relative;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  border-radius:18px;
+}
+.flip-card:focus-visible{outline:3px solid var(--coral);outline-offset:4px;}
+.flip-card-front.persona-card{
+  position:relative;
+  margin:0;
+  animation:none; /* the flip itself is the reveal -- no extra pop-in on top of it */
+}
+.flip-card-back{
+  position:absolute; inset:0;
+  background:var(--sea);
+  border:2px solid var(--sand);
+  border-radius:18px;
+  display:flex; align-items:center; justify-content:center;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  transform:rotateY(0deg);
+  transform-origin:center;
+  transition:transform .8s cubic-bezier(.3,1.25,.5,1);
+  animation:cardIdleWiggle 3s ease-in-out infinite;
+}
+.flip-card.flipped .flip-card-back{
+  transform:rotateY(180deg);
+  animation:none;
+}
+.card-back-emblem{width:72px;height:72px;}
+@keyframes cardIdleWiggle{
+  0%,88%,100%{transform:rotateZ(0deg) rotateY(0deg);}
+  90%{transform:rotateZ(-1.4deg) rotateY(0deg);}
+  93%{transform:rotateZ(1.4deg) rotateY(0deg);}
+  96%{transform:rotateZ(-0.7deg) rotateY(0deg);}
+}
+.card-shine{
+  position:absolute; top:0; bottom:0; left:-60%; width:45%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+  pointer-events:none; opacity:0;
+}
+.card-shine.sweep{
+  opacity:1;
+  animation:cardShineSweep .5s ease-out forwards;
+}
+@keyframes cardShineSweep{
+  from{left:-60%; opacity:1;}
+  to{left:120%; opacity:0;}
+}
+.card-sparkle{
+  position:absolute; color:#E8C547; font-size:16px;
+  opacity:0; pointer-events:none; z-index:2;
+}
+.card-sparkle.s1{top:-6px; right:14%;}
+.card-sparkle.s2{bottom:10%; left:-8px;}
+.card-sparkle.s3{top:30%; right:-8px;}
+.card-sparkle.pop{animation:cardSparklePop .7s ease-out forwards;}
+@keyframes cardSparklePop{
+  0%{opacity:0; transform:scale(.3) rotate(0deg);}
+  35%{opacity:1; transform:scale(1.15) rotate(15deg);}
+  100%{opacity:0; transform:scale(.8) rotate(25deg);}
+}
+@media (prefers-reduced-motion: reduce){
+  .flip-card-back{animation:none; transition:opacity .25s var(--ease);}
+  .flip-card.flipped .flip-card-back{transform:none; opacity:0; pointer-events:none;}
+}
+.flip-card.no-anim .flip-card-back{transition:none !important; animation:none !important;}
+
 .persona-char-area{
   margin:0 -20px 18px;
   height:150px;
@@ -520,7 +654,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   object-fit:contain;
 }
 .persona-char-fallback{width:84px;height:84px;}
-.persona-name{font-family:var(--font-display);font-weight:900;font-size:1.5rem;color:var(--navy);line-height:1.15;}
+.persona-name{font-family:var(--font-heading-game);font-weight:800;font-size:1.5rem;color:var(--navy);line-height:1.15;}
 .persona-name em{color:var(--coral);}
 .persona-style{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);margin-top:5px;}
 .persona-tagline{font-size:13px;color:var(--ink-soft);margin-top:7px;line-height:1.4;}
@@ -533,9 +667,22 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .dot.filled.w{background:var(--coral);}
 .dot.filled.s{background:var(--sea);}
 
-.teaser-text{font-size:16px;line-height:1.7;color:var(--ink-soft);text-align:right;margin-top:14px;}
+.teaser-text{
+  font-size:16px;line-height:1.7;color:var(--ink-soft);text-align:right;
+  opacity:0; transform:translateY(8px);
+  transition:opacity .3s var(--ease), transform .3s var(--ease);
+}
+.teaser-text.show{opacity:1; transform:translateY(0);}
 
-.gate-card{margin:0 18px 18px;}
+.gate-card{
+  margin:0 18px 18px;
+  opacity:0; transform:translateY(8px);
+  transition:opacity .3s var(--ease), transform .3s var(--ease);
+}
+.gate-card.show{opacity:1; transform:translateY(0);}
+@media (prefers-reduced-motion: reduce){
+  .teaser-text, .gate-card{transform:none;}
+}
 .gate-title{font-family:var(--font-display);font-weight:900;font-size:1.1rem;color:var(--navy);text-align:center;margin-bottom:16px;}
 .field{margin-bottom:12px;}
 .field label{display:block;font-size:.76rem;font-weight:700;color:var(--ink-soft);margin-bottom:5px;}
@@ -581,8 +728,15 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   display:flex;align-items:center;justify-content:center;gap:8px;
   min-height:46px;
   background:var(--coral);color:#fff;
-  border-radius:12px;text-decoration:none;
+  border-radius:16px;text-decoration:none;
   font-size:.92rem;font-weight:700;
+  box-shadow:0 4px 0 #B9533D;
+  transition:transform .08s var(--ease), box-shadow .08s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.cta-link:active{
+  transform:translateY(3px);
+  box-shadow:0 1px 0 #B9533D;
 }
 
 .retake-row{text-align:center;margin:20px 18px 12px;}
@@ -634,8 +788,8 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 #share-char-area{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
 #share-char-area img{max-width:82%;max-height:82%;object-fit:contain;}
 #share-title{
-  font-family:'Playfair Display',Georgia,serif;
-  font-weight:900; font-size:33px; color:#1D2B3A; line-height:1.22;
+  font-family:var(--font-heading-game);
+  font-weight:800; font-size:33px; color:#1D2B3A; line-height:1.22;
   margin-top:16px;
 }
 #share-title em{font-style:normal; color:#E8735A;}
@@ -790,7 +944,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   <div id="screen-insufficient" class="screen">
     <div class="pad">
       <div class="card" style="text-align:center;margin-top:40px;">
-        <p id="insufficient-msg" style="font-size:17px;line-height:1.6;color:var(--navy);font-weight:700;"></p>
+        <p id="insufficient-msg" style="font-family:var(--font-heading-game);font-size:17px;line-height:1.6;color:var(--navy);font-weight:700;"></p>
         <div class="route-wrap" style="padding:18px 0 0;">
           <svg class="route-svg two-row" id="route-svg-insufficient" viewBox="0 0 380 92" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -889,25 +1043,45 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   <div id="screen-teaser" class="screen">
     <div class="pad" style="padding-bottom:0;height:8px;"></div>
 
-    <div class="persona-card" id="teaser-persona-card">
-      <div class="persona-char-area" id="t-char-area"></div>
-      <div class="persona-name" id="t-name"></div>
-      <div class="persona-style" id="t-style"></div>
-      <div class="persona-tagline" id="t-tagline"></div>
-      <div class="strength-rows">
-        <div class="strength-row">
-          <span class="strength-lbl">חום</span>
-          <div class="dots" id="dots-w"></div>
-        </div>
-        <div class="strength-row">
-          <span class="strength-lbl">גבולות</span>
-          <div class="dots" id="dots-s"></div>
-        </div>
-      </div>
-      <p class="teaser-text" id="t-desc"></p>
-    </div>
+    <p class="card-reveal-prompt" id="card-reveal-prompt">הכרטיס שלכם מוכן</p>
 
-    <div class="gate-card card" style="margin:0 18px 18px;">
+    <div class="flip-card-scene" id="flip-card-scene">
+      <button type="button" class="flip-card" id="flip-card" aria-label="חשפו את הכרטיס">
+        <span class="card-sparkle s1" aria-hidden="true">✦</span>
+        <span class="card-sparkle s2" aria-hidden="true">✦</span>
+        <span class="card-sparkle s3" aria-hidden="true">✦</span>
+        <div class="flip-card-front persona-card show" id="teaser-persona-card" aria-hidden="true">
+          <div class="card-shine" id="card-shine" aria-hidden="true"></div>
+          <div class="persona-char-area" id="t-char-area"></div>
+          <div class="persona-name" id="t-name"></div>
+          <div class="persona-style" id="t-style"></div>
+          <div class="persona-tagline" id="t-tagline"></div>
+          <div class="strength-rows">
+            <div class="strength-row">
+              <span class="strength-lbl">חום</span>
+              <div class="dots" id="dots-w"></div>
+            </div>
+            <div class="strength-row">
+              <span class="strength-lbl">גבולות</span>
+              <div class="dots" id="dots-s"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card-back" aria-hidden="true">
+          <svg class="card-back-emblem" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="42" cy="42" r="34" fill="none" stroke="var(--sand)" stroke-width="2" stroke-dasharray="3 6"/>
+            <polygon points="42,12 48,42 42,72 36,42" fill="var(--sand)" opacity="0.9"/>
+            <polygon points="72,42 42,48 42,36 12,42" fill="var(--sand)" opacity="0.6"/>
+            <circle cx="42" cy="42" r="5" fill="var(--sand)"/>
+          </svg>
+        </div>
+      </button>
+    </div>
+    <div class="sr-only" aria-live="polite" id="card-reveal-announce"></div>
+
+    <p class="teaser-text card" id="t-desc" style="margin:0 18px 18px;"></p>
+
+    <div class="gate-card card" id="gate-card" style="margin:0 18px 18px;">
       <div class="gate-title">קבלו את הפרופיל המלא למייל</div>
       <div class="field">
         <label for="inp-name">שם פרטי</label>
@@ -923,7 +1097,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
     <div class="pinned-wrap">
       <button id="btn-submit" class="btn-main">
-        <span>לפרופיל המלא</span><span>←</span>
+        <span id="btn-submit-label">חשפו את הכרטיס</span><span>←</span>
       </button>
     </div>
   </div>
@@ -1073,6 +1247,7 @@ const S = {
   scores:{w:0,s:0},
   persona:null, secondary:null,
   charSuffix:null,
+  cardFlipped:false,
   name:'', email:''
 };
 
@@ -1410,12 +1585,23 @@ document.querySelectorAll('.chip').forEach(b=>{
     const {group,value} = b.dataset;
     document.querySelectorAll(`.chip[data-group="${group}"]`).forEach(x=>x.classList.remove('selected'));
     b.classList.add('selected');
+    haptic('tick');
     if(group==='age') S.age=value; else S.gender=value;
     updateStartBtn();
   });
 });
 $('chk-consent').addEventListener('change', updateStartBtn);
 updateStartBtn();
+
+// Primary-button press feedback: a single delegated listener covers every
+// .btn-main (the pinned button on each screen) and .cta-link, current and
+// future, without wiring haptic() into each individual click handler.
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.btn-main, .cta-link');
+  if(!btn) return;
+  if(btn.disabled || btn.getAttribute('aria-disabled')==='true') return;
+  haptic('tick');
+});
 
 $('btn-start').addEventListener('click', ()=>{
   const missing = getMissingField();
@@ -1691,7 +1877,11 @@ function renderQ(){
   trackEvent('question_view', { question_number:n });
   $('q-count').textContent = `רגע ${n} מתוך ${tot}`;
   $('btn-back').classList.toggle('show', S.idx>0);
-  $('situation-text').textContent = t(q.situation);
+  const situationCard = $('situation-text');
+  situationCard.textContent = t(q.situation);
+  situationCard.style.animation = 'none';
+  void situationCard.offsetWidth; // force reflow so the slide-in replays on every question change
+  situationCard.style.animation = '';
   $('next-label').textContent = n===tot ? 'לגלות את התוצאה' : 'ממשיכים להפליג';
   applySliderOrder(layout.swapOrder);
   // When flipped, the visual left side now means "high" semantically, so the
@@ -1961,11 +2151,67 @@ function buildTeaser(){
   replaceHistoryState('screen-teaser');
   show('screen-teaser');
 
-  const card = $('teaser-persona-card');
-  card.classList.remove('show');
-  void card.offsetWidth; // force reflow so the pop-in animation restarts on retake
-  card.classList.add('show');
+  setupCardFlipState();
 }
+
+/* ── Card flip reveal ── */
+function setGateVisible(visible){
+  const gate = $('gate-card'), desc = $('t-desc');
+  gate.classList.toggle('show', visible);
+  desc.classList.toggle('show', visible);
+  if(visible) gate.removeAttribute('inert'); else gate.setAttribute('inert','');
+}
+// Restores the card to its correct state whenever the teaser screen is
+// (re)built: face-down and ready on first arrival, or already flipped --
+// instantly, no animation -- if S.cardFlipped is already true for this session.
+function setupCardFlipState(){
+  const flipCard = $('flip-card');
+  if(S.cardFlipped){
+    flipCard.classList.add('flipped', 'no-anim');
+    $('card-reveal-prompt').classList.add('hide');
+    $('teaser-persona-card').setAttribute('aria-hidden', 'false');
+    $('btn-submit-label').textContent = 'לפרופיל המלא';
+    setGateVisible(true);
+  } else {
+    flipCard.classList.remove('flipped', 'no-anim');
+    $('card-reveal-prompt').classList.remove('hide');
+    $('teaser-persona-card').setAttribute('aria-hidden', 'true');
+    $('btn-submit-label').textContent = 'חשפו את הכרטיס';
+    setGateVisible(false);
+  }
+}
+function startCardFlip(){
+  if(S.cardFlipped) return;
+  S.cardFlipped = true;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const flipCard = $('flip-card');
+  flipCard.classList.remove('no-anim');
+  flipCard.classList.add('flipped');
+  $('teaser-persona-card').setAttribute('aria-hidden', 'false');
+  $('card-reveal-prompt').classList.add('hide');
+  haptic('confirm');
+  trackEvent('card_reveal', { persona:S.persona });
+
+  const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
+  $('card-reveal-announce').textContent = title;
+
+  if(!reduced){
+    setTimeout(()=>{
+      $('card-shine').classList.add('sweep');
+      ['s1','s2','s3'].forEach(cls => $('flip-card-scene').querySelector('.card-sparkle.'+cls).classList.add('pop'));
+      setTimeout(()=>{
+        $('card-shine').classList.remove('sweep');
+        $('flip-card-scene').querySelectorAll('.card-sparkle').forEach(el=>el.classList.remove('pop'));
+      }, 700);
+    }, 400); // midpoint of the 800ms flip
+  }
+
+  setTimeout(()=>{
+    $('btn-submit-label').textContent = 'לפרופיל המלא';
+    setGateVisible(true);
+  }, reduced ? 250 : 800);
+}
+$('flip-card').addEventListener('click', startCardFlip);
 function renderDots(containerId, level, cls){
   const el = $(containerId);
   el.innerHTML = '';
@@ -1984,6 +2230,7 @@ $('inp-email').addEventListener('keydown', e=>{
   }
 });
 $('btn-submit').addEventListener('click', async ()=>{
+  if(!S.cardFlipped){ startCardFlip(); return; }
   const name = $('inp-name').value.trim();
   const email = $('inp-email').value.trim();
   const st = $('status');
@@ -2095,7 +2342,13 @@ async function renderShareCard(){
   $('share-dots-w').innerHTML = buildShareDots(strengthLevel(w), 'w');
   $('share-strength-line').textContent = PERSONA_STRENGTH_LINE[persona];
 
-  if(document.fonts && document.fonts.ready){ await document.fonts.ready; }
+  if(document.fonts){
+    // Explicitly request the heading font used by #share-title, then wait for
+    // every font the page has requested to finish loading, so html2canvas
+    // never captures a frame still showing the fallback font.
+    try{ await Promise.all([document.fonts.load('800 1em Rubik'), document.fonts.load('700 1em Rubik')]); }catch(e){ /* best effort */ }
+    if(document.fonts.ready) await document.fonts.ready;
+  }
   const canvas = await html2canvas($('share-card'), { scale:2, backgroundColor:'#F6EFE4', useCORS:true });
   return canvas;
 }
@@ -2267,7 +2520,7 @@ function showToast(msg, duration){
 /* ── Retake ── */
 function resetQuiz(){
   trackEvent('retake', {});
-  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, name:'', email:''});
+  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, cardFlipped:false, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
   updateStartBtn();
