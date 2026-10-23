@@ -494,6 +494,32 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   .kbd-hint-desktop{display:block;}
 }
 
+.skip-question-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:44px;
+  margin-top:8px;
+  padding:10px 14px;
+  background:none;
+  border:none;
+  border-radius:10px;
+  font-family:var(--font-body);
+  font-size:14px;
+  font-weight:600;
+  color:var(--ink-soft);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  text-align:center;
+  cursor:pointer;
+}
+.skip-question-link:active{opacity:.6;}
+.skip-question-link:focus-visible{outline:2px solid var(--coral); outline-offset:2px;}
+@media (hover:hover) and (pointer:fine){
+  .skip-question-link:hover{color:var(--navy);}
+}
+
 .slider-warning{
   display:none;
   margin:14px 18px 0;
@@ -1167,6 +1193,8 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 
       <div class="kbd-hint-desktop">אפשר גם במקלדת: חיצים להזזה, Tab למעבר לסליידר הבא, Enter להמשך</div>
     </div>
+
+    <button type="button" class="skip-question-link" id="btn-skip-question">אף תשובה לא מתאימה? דלגו על השאלה</button>
 
     <div class="slider-warning" id="slider-warning">לא הזזתם את הסליידרים. אם אף תשובה לא מתאימה, אפשר להמשיך, והשאלה הזו לא תיכלל בתוצאה.</div>
 
@@ -1885,7 +1913,7 @@ const DISCLAIMER_HTML = `
 `;
 const ABOUT_HTML = `
   <p>השאלון הזה יכול לעזור לכם לגלות את סגנון ההורות שאתם נוטים אליו. הוא מבוסס על מודל סגנונות ההורות של באומרינד, אחד המודלים הכי נחקרים בעולם ההורות, ובסופו תגלו לאיזה פרופיל הורי אתם נוטים: כמה מסגרת וגבולות אתם מציבים מצד אחד, וכמה חמימות וחיבור רגשי אתם מספקים מצד שני.</p>
-  <p><strong>איך זה עובד?</strong> עשר סיטואציות יומיומיות יוצגו בפניכם. בכל אחת הזיזו את שני הסליידרים למקום שמשקף את התגובה שלכם בדרך כלל. לאחר שתענו על עשר שאלות תקבלו את הפרופיל ההורי והסבר.</p>
+  <p><strong>איך זה עובד?</strong> עשר סיטואציות יומיומיות יוצגו בפניכם. בכל אחת הזיזו את שני הסליידרים למקום שמשקף את התגובה שלכם בדרך כלל. לאחר שתענו על עשר שאלות תקבלו את הפרופיל ההורי והסבר. אם אף תשובה לא מתאימה לכם, אפשר לדלג על השאלה.</p>
   <p>רוב ההורים לא מתנהגים בצורה קבועה כל הזמן. זה תלוי בסיטואציה, בילד שעליו מדובר, ובגורמים רבים אחרים כמו כמה ישנתם בלילה, כמה המצב האישי לחוץ וכן הלאה. לכן, השתדלו להזיז את הסליידרים למקום שמשקף את מה שקורה לכם ברוב המקרים.</p>
 `;
 
@@ -2216,7 +2244,7 @@ function renderQ(){
   if(!$('route-svg').innerHTML) buildRoute();
   const q = S.questions[S.idx], n = S.idx+1, tot = S.questions.length;
   const layout = currentSliderLayout();
-  trackEvent('question_view', { question_number:n });
+  trackEvent('question_view', { question_number:n, question_id:q.id });
   $('q-count').textContent = `רגע ${n} מתוך ${tot}`;
   $('btn-back').classList.toggle('show', S.idx>0);
   const situationCard = $('situation-text');
@@ -2267,16 +2295,14 @@ function storeCurrent(){
   };
 }
 
-$('btn-next').addEventListener('click', ()=>{
-  if(!S.touchedB && !S.touchedC && !S.nextConfirmPending){
-    S.nextConfirmPending = true;
-    $('slider-warning').classList.add('show');
-    $('next-label').textContent = 'להמשיך בכל זאת';
-    applyUnansweredHighlights();
-    return;
-  }
+// Shared by the next button's "proceed anyway" confirmation path and the
+// skip-question link, which bypasses that confirmation entirely. Only fires
+// question_skipped when NEITHER slider was touched -- a question with one
+// slider set is "half answered", not skipped, same meaning the buoy states
+// already use (see buoyStateForSummary).
+function advanceFromQuestion(method){
   if(!S.touchedB && !S.touchedC){
-    trackEvent('question_skipped', { question_number:S.idx+1 });
+    trackEvent('question_skipped', { question_number:S.idx+1, question_id:S.questions[S.idx].id, method });
   }
   storeCurrent();
   if(S.idx < S.questions.length-1){
@@ -2286,6 +2312,21 @@ $('btn-next').addEventListener('click', ()=>{
   } else {
     finishQuiz();
   }
+}
+
+$('btn-next').addEventListener('click', ()=>{
+  if(!S.touchedB && !S.touchedC && !S.nextConfirmPending){
+    S.nextConfirmPending = true;
+    $('slider-warning').classList.add('show');
+    $('next-label').textContent = 'להמשיך בכל זאת';
+    applyUnansweredHighlights();
+    return;
+  }
+  advanceFromQuestion('next_button');
+});
+
+$('btn-skip-question').addEventListener('click', ()=>{
+  advanceFromQuestion('skip_link');
 });
 
 $('btn-back').addEventListener('click', ()=>{
