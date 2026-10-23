@@ -425,11 +425,11 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 }
 .slider-card.unanswered .slider-caption{display:block;}
 .slider-endpoints{
-  display:flex;justify-content:space-between;gap:10px;
+  display:flex;justify-content:space-between;gap:12px;
   margin-bottom:18px;
 }
 .slider-endpoints span{
-  flex:1;font-size:14px;line-height:1.4;color:var(--ink-soft);text-align:center;
+  flex:1;font-size:16px;line-height:1.4;font-weight:600;color:var(--navy);text-align:center;
 }
 .slider-track-wrap{position:relative;height:44px; touch-action:none;}
 .slider-track-visual{
@@ -552,7 +552,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .persona-card{
   display:none;
   background:var(--card);
-  border:2px solid var(--coral);
+  border:3px solid var(--coral);
   border-radius:18px;
   padding:0 20px 24px;
   margin:0 18px 18px;
@@ -608,8 +608,22 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   width:var(--stage-w);
   height:calc(var(--u) * 262px);
   min-width:44px; min-height:44px;
+  /* Both declared unconditionally (not only on .expanded) so the transition
+     is already active before the value changes -- toggling it on in the
+     same style recalc as the value change is what silently breaks a
+     transition (the lesson from the flip-card bug earlier in this file). */
+  transition:height .55s cubic-bezier(.3,1.25,.5,1), width .55s cubic-bezier(.3,1.25,.5,1);
 }
 .chest-stage:focus-visible{outline:3px solid var(--coral); outline-offset:6px; border-radius:16px;}
+.chest-stage.expanded{
+  /* Widening the stage itself (not just the card) means the card's 100%
+     width during expansion resolves against this, already screen-width-ish
+     and already centered by .chest-stage-wrap's flex centering -- no need
+     for separate min()/centering math duplicated on the card. */
+  width:min(320px, calc(100% - 32px));
+  height:var(--chest-expanded-height, calc(var(--u) * 262px));
+}
+.chest-stage.no-anim{transition:none !important;}
 
 /* Hard rule: no element below has both an animation and a transition on the
    same property. .chest-rattle only ever animates (never transitions) --
@@ -634,6 +648,21 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   .chest-rattle{animation:none;}
 }
 
+/* .chest-box wraps the back+front SVGs only (never .chest-rattle or the lid
+   elements, per the brief) so its fade+drop on expansion is a plain
+   transition on an element that has no animation of its own -- it can't
+   collide with .chest-rattle's idle-rattle animation or the lid
+   transitions, which live on entirely different elements. */
+.chest-box{
+  transition:opacity .45s var(--ease), transform .45s var(--ease);
+}
+.chest-stage.expanded .chest-box{
+  opacity:0;
+  transform:translateY(6px);
+  pointer-events:none;
+}
+.chest-stage.no-anim .chest-box{transition:none !important;}
+
 .chest-back-svg, .chest-front-svg{
   position:absolute; left:50%; bottom:0;
   width:calc(var(--u) * 200px); height:calc(var(--u) * 170px);
@@ -649,6 +678,12 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   overflow:hidden;
   z-index:2;
   pointer-events:none;
+}
+.chest-stage.expanded .cardclip{
+  overflow:visible;
+  z-index:5;
+  height:100%;
+  pointer-events:auto;
 }
 .chest-card{
   position:absolute; left:50%; top:0;
@@ -667,33 +702,54 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   border-radius:calc(var(--u) * 10px);
   overflow:hidden;
   box-shadow:0 4px 14px rgba(29,43,58,.25);
-  transition:transform .75s cubic-bezier(.3,1.3,.5,1) .55s, opacity .15s linear .55s;
+  /* Declared unconditionally (open AND expanded both reuse this) so neither
+     state-change toggles the transition property itself on at the same
+     moment its target value changes. */
+  transition:transform .75s cubic-bezier(.3,1.3,.5,1) .55s, opacity .15s linear .55s, width .55s cubic-bezier(.3,1.25,.5,1);
 }
 .chest-stage.open .chest-card{
   transform:translate(-50%, var(--chest-card-rest-y));
   opacity:1;
 }
+.chest-stage.expanded .chest-card{
+  width:100%; /* .chest-stage itself has already widened to min(320px, 100% - 32px) */
+  transform:translate(-50%, 0px);
+}
+.chest-stage.no-anim .chest-card{transition:none !important;}
+.chest-stage.no-anim .cardclip{transition:none !important;}
 .chest-card-inner{
   width:100%;
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
   padding:calc(var(--u) * 6px) calc(var(--u) * 6px) calc(var(--u) * 10px);
   text-align:center;
+  transition:padding-bottom .55s cubic-bezier(.3,1.25,.5,1);
 }
+.chest-stage.expanded .chest-card-inner{padding-bottom:14px;}
+.chest-stage.no-anim .chest-card-inner{transition:none !important;}
 .chest-card-char{
   width:100%; height:calc(var(--u) * 72px);
   display:flex; align-items:center; justify-content:center;
+  transition:height .55s cubic-bezier(.3,1.25,.5,1);
 }
+.chest-stage.expanded .chest-card-char{height:160px;}
+.chest-stage.no-anim .chest-card-char{transition:none !important;}
 .chest-card-char img{max-width:88%; max-height:100%; object-fit:contain;}
 .chest-card-title{
   font-family:var(--font-heading-game); font-weight:800;
   font-size:max(12px, calc(var(--u) * 11.5px));
   color:var(--navy); line-height:1.15; margin-top:calc(var(--u) * 4px);
+  transition:font-size .55s cubic-bezier(.3,1.25,.5,1);
 }
+.chest-stage.expanded .chest-card-title{font-size:clamp(24px, 7vw, 30px);}
+.chest-stage.no-anim .chest-card-title{transition:none !important;}
 .chest-card-title em{color:var(--coral); font-style:normal;}
 .chest-card-tagline{
   font-size:max(12px, calc(var(--u) * 9px));
   color:var(--ink-soft); line-height:1.25; margin-top:calc(var(--u) * 3px);
+  transition:font-size .55s cubic-bezier(.3,1.25,.5,1), line-height .55s cubic-bezier(.3,1.25,.5,1);
 }
+.chest-stage.expanded .chest-card-tagline{font-size:16px; line-height:1.5;}
+.chest-stage.no-anim .chest-card-tagline{transition:none !important;}
 
 .glow{
   position:absolute; left:50%; top:calc(var(--u) * 40px);
@@ -780,21 +836,34 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   .chest-stage.open .glow{transform:translate(-50%,-50%);}
   .chest-stage.open .glow-rays{animation:none;}
   .chest-sparkle{display:none;}
-  .chest-card{transition:opacity .4s var(--ease); transform:translate(-50%, calc(var(--u) * 40px));}
-  .chest-stage.open .chest-card{transform:translate(-50%, calc(var(--u) * 40px)); opacity:1;}
+
+  /* Skip the rise and the expansion choreography entirely: openChest() adds
+     .expanded in the same tick as .open under reduced motion, and every
+     target value below already matches the final big-card appearance --
+     all that's left to animate is a single opacity cross-fade. */
+  .chest-stage{transition:none;}
+  .chest-stage.open{width:min(320px, calc(100% - 32px)); height:var(--chest-expanded-height, calc(var(--u) * 262px));}
+  .chest-box{transition:opacity .4s var(--ease); transform:none;}
+  .chest-stage.open .chest-box{opacity:0;}
+  .cardclip{overflow:visible; z-index:5;}
+  .chest-card{transition:opacity .4s var(--ease); transform:translate(-50%, 0px); width:100%;}
+  .chest-stage.open .chest-card{opacity:1;}
+  .chest-card-char{transition:none; height:160px;}
+  .chest-card-title{transition:none; font-size:clamp(24px, 7vw, 30px);}
+  .chest-card-tagline{transition:none; font-size:16px; line-height:1.5;}
+  .chest-card-inner{transition:none; padding-bottom:14px;}
 }
 .chest-stage.no-anim .lidFront,
 .chest-stage.no-anim .innerLid,
 .chest-stage.no-anim .inGlow,
-.chest-stage.no-anim .glow,
-.chest-stage.no-anim .chest-card{transition:none !important;}
+.chest-stage.no-anim .glow{transition:none !important;}
 .chest-stage.no-anim .chest-sparkle{animation:none !important;}
 .chest-stage.no-anim .glow-rays{animation:none !important;}
 
 
 .persona-char-area{
   margin:0 -20px 18px;
-  height:150px;
+  height:160px;
   display:flex;align-items:center;justify-content:center;
   position:relative;
 }
@@ -803,10 +872,10 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   object-fit:contain;
 }
 .persona-char-fallback{width:84px;height:84px;}
-.persona-name{font-family:var(--font-heading-game);font-weight:800;font-size:1.5rem;color:var(--navy);line-height:1.15;}
+.persona-name{font-family:var(--font-heading-game);font-weight:800;font-size:clamp(24px, 7vw, 30px);color:var(--navy);line-height:1.15;}
 .persona-name em{color:var(--coral);}
 .persona-style{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);margin-top:5px;}
-.persona-tagline{font-size:13px;color:var(--ink-soft);margin-top:7px;line-height:1.4;}
+.persona-tagline{font-size:16px;color:var(--ink-soft);margin-top:7px;line-height:1.5;}
 
 .strength-rows{display:flex;flex-direction:column;gap:10px;margin:18px 0;}
 .strength-row{display:flex;align-items:center;gap:10px;justify-content:center;}
@@ -817,10 +886,12 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
 .dot.filled.s{background:var(--sea);}
 
 .teaser-text{
-  font-size:16px;line-height:1.7;color:var(--ink-soft);text-align:right;
+  text-align:right;
   opacity:0; transform:translateY(8px);
   transition:opacity .3s var(--ease), transform .3s var(--ease);
 }
+.teaser-text p{font-size:18px;line-height:1.75;color:var(--navy);margin-bottom:16px;}
+.teaser-text p:last-child{margin-bottom:0;}
 .teaser-text.show{opacity:1; transform:translateY(0);}
 
 .gate-card{
@@ -858,8 +929,8 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
   text-shadow:0 1px 2px rgba(0,0,0,0.35);
 }
 
-.res-desc{font-size:16px;line-height:1.7;color:var(--ink-soft);margin:14px 18px;}
-.res-desc p{margin-bottom:14px;}
+.res-desc{font-size:17px;line-height:1.75;color:var(--navy);margin:14px 18px;}
+.res-desc p{margin-bottom:16px;}
 .res-desc p:last-child{margin-bottom:0;}
 
 .share-row{text-align:center;margin:14px 18px;}
@@ -1221,24 +1292,26 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
           <div class="glow-rays"></div>
         </div>
         <div class="chest-rattle" id="chest-rattle">
-          <svg class="chest-back-svg" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <ellipse cx="100" cy="160" rx="78" ry="8" fill="#1D2B3A" opacity=".18"/>
-            <g class="innerLid"><path d="M34 76V42Q34 16 100 16Q166 16 166 42V76Z" fill="#5A3B24" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/><path d="M44 72V44Q44 28 100 28Q156 28 156 44V72Z" fill="#6B4429"/><rect x="52" y="34" width="12" height="42" fill="#E8C770" stroke="#1D2B3A" stroke-width="2"/><rect x="136" y="34" width="12" height="42" fill="#E8C770" stroke="#1D2B3A" stroke-width="2"/></g>
-            <ellipse cx="100" cy="86" rx="66" ry="11" fill="#2A1A10" stroke="#1D2B3A" stroke-width="2.5"/>
-            <ellipse class="inGlow" cx="100" cy="86" rx="56" ry="8" fill="#E8C770"/>
-          </svg>
-          <div class="cardclip">
+          <div class="chest-box" id="chest-box">
+            <svg class="chest-back-svg" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <ellipse cx="100" cy="160" rx="78" ry="8" fill="#1D2B3A" opacity=".18"/>
+              <g class="innerLid"><path d="M34 76V42Q34 16 100 16Q166 16 166 42V76Z" fill="#5A3B24" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/><path d="M44 72V44Q44 28 100 28Q156 28 156 44V72Z" fill="#6B4429"/><rect x="52" y="34" width="12" height="42" fill="#E8C770" stroke="#1D2B3A" stroke-width="2"/><rect x="136" y="34" width="12" height="42" fill="#E8C770" stroke="#1D2B3A" stroke-width="2"/></g>
+              <ellipse cx="100" cy="86" rx="66" ry="11" fill="#2A1A10" stroke="#1D2B3A" stroke-width="2.5"/>
+              <ellipse class="inGlow" cx="100" cy="86" rx="56" ry="8" fill="#E8C770"/>
+            </svg>
+            <svg class="chest-front-svg" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M30 86H170V150Q170 157 163 157H37Q30 157 30 150Z" fill="#8A5A3A" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M32 106H168M32 126H168M32 144H168" stroke="#6B4429" stroke-width="2.5"/>
+              <rect x="52" y="86" width="14" height="71" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="134" y="86" width="14" height="71" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/>
+              <rect x="86" y="96" width="28" height="30" rx="5" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><circle cx="100" cy="108" r="4.5" fill="#1D2B3A"/><rect x="98" y="110" width="4" height="9" rx="1" fill="#1D2B3A"/>
+              <g class="lidFront"><path d="M30 86V62Q30 34 100 34Q170 34 170 62V86Z" fill="#9A6A43" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/><path d="M40 82V64Q40 46 100 46Q160 46 160 64V82Z" fill="none" stroke="#7A5233" stroke-width="2.5"/><rect x="52" y="46" width="14" height="40" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="134" y="46" width="14" height="40" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="86" y="76" width="28" height="14" rx="4" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/></g>
+            </svg>
+          </div>
+          <div class="cardclip" id="cardclip">
             <div class="chest-card" id="chest-card">
               <div class="chest-card-inner" id="chest-card-inner" aria-hidden="true"></div>
             </div>
           </div>
-          <svg class="chest-front-svg" viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M30 86H170V150Q170 157 163 157H37Q30 157 30 150Z" fill="#8A5A3A" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M32 106H168M32 126H168M32 144H168" stroke="#6B4429" stroke-width="2.5"/>
-            <rect x="52" y="86" width="14" height="71" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="134" y="86" width="14" height="71" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/>
-            <rect x="86" y="96" width="28" height="30" rx="5" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><circle cx="100" cy="108" r="4.5" fill="#1D2B3A"/><rect x="98" y="110" width="4" height="9" rx="1" fill="#1D2B3A"/>
-            <g class="lidFront"><path d="M30 86V62Q30 34 100 34Q170 34 170 62V86Z" fill="#9A6A43" stroke="#1D2B3A" stroke-width="3" stroke-linejoin="round"/><path d="M40 82V64Q40 46 100 46Q160 46 160 64V82Z" fill="none" stroke="#7A5233" stroke-width="2.5"/><rect x="52" y="46" width="14" height="40" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="134" y="46" width="14" height="40" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/><rect x="86" y="76" width="28" height="14" rx="4" fill="#E8C770" stroke="#1D2B3A" stroke-width="2.5"/></g>
-          </svg>
         </div>
         <span class="chest-sparkle sp1" aria-hidden="true">✦</span>
         <span class="chest-sparkle sp2" aria-hidden="true">✧</span>
@@ -1250,7 +1323,7 @@ h1,h2{font-family:var(--font-display);font-weight:900;color:var(--navy);}
     </div>
     <div class="sr-only" aria-live="polite" id="chest-announce"></div>
 
-    <p class="teaser-text card" id="t-desc" style="margin:0 18px 18px;"></p>
+    <div class="teaser-text card" id="t-desc" style="margin:0 18px 18px;"></div>
 
     <div class="gate-card card" id="gate-card" style="margin:0 18px 18px;">
       <div class="gate-title">קבלו את הפרופיל המלא למייל</div>
@@ -1432,7 +1505,7 @@ const S = {
   scores:{w:0,s:0},
   persona:null, secondary:null,
   charSuffix:null,
-  chestOpened:false,
+  chestOpened:false, chestSequenceDone:false,
   name:'', email:''
 };
 
@@ -2412,7 +2485,8 @@ function buildTeaser(){
   const p = P[S.persona];
   trackEvent('quiz_complete', { persona:S.persona });
 
-  $('t-desc').textContent = t(p.teaser);
+  const teaserParagraphs = t(p.teaser).split(/\n\n+/).map(x=>x.trim()).filter(Boolean);
+  $('t-desc').innerHTML = teaserParagraphs.map(para => `<p>${para.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</p>`).join('');
 
   replaceHistoryState('screen-teaser');
   show('screen-teaser');
@@ -2477,21 +2551,70 @@ function positionChestCard(){
   const restY = 164 * u - cardHeightPx;
   card.style.setProperty('--chest-card-rest-y', restY + 'px');
 }
+// Measures the now-expanded card (width/fonts already switched via the
+// .expanded class) and grows the stage to match its real height, so the
+// card ends up vertically centered over the chest (stage height == card
+// height makes that trivial) and the content below moves down smoothly
+// rather than jumping.
+function expandChestCard(){
+  const stage = $('chest-stage'), wrap = stage.parentElement;
+  // card's width/font-size/padding are all mid-transition at this point (the
+  // .expanded class was just added), so a plain getBoundingClientRect() on
+  // the live card would capture the pre-transition height, not the final
+  // one -- and forcing a no-anim snap on the LIVE card is worse: it erases
+  // the in-flight transition entirely (nothing left to animate once
+  // transitions are handed back, since the rendered state is already at the
+  // target). So measure on a detached clone instead: a freshly-created node
+  // that starts out already carrying .expanded/.no-anim never had a "before"
+  // state to transition from, so it renders straight at the final geometry
+  // and never touches the live, currently-animating card.
+  const clone = stage.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.classList.add('expanded', 'no-anim');
+  clone.style.position = 'absolute';
+  clone.style.visibility = 'hidden';
+  clone.style.pointerEvents = 'none';
+  clone.style.top = '0';
+  clone.style.insetInlineStart = '0';
+  const wrapNeedsRelative = getComputedStyle(wrap).position === 'static';
+  if(wrapNeedsRelative) wrap.style.position = 'relative';
+  wrap.appendChild(clone);
+  const expandedHeight = clone.querySelector('.chest-card').getBoundingClientRect().height;
+  wrap.removeChild(clone);
+  if(wrapNeedsRelative) wrap.style.position = '';
+  stage.style.setProperty('--chest-expanded-height', expandedHeight + 'px');
+}
+function applyChestFinalLabels(){
+  $('chest-title').textContent = 'הפרופיל שלכם';
+  $('chest-subtitle').textContent = '';
+  $('btn-submit-label').textContent = 'לפרופיל המלא';
+}
+function applyChestSequenceEnd(){
+  applyChestFinalLabels();
+  const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
+  $('chest-announce').textContent = `נפתח: ${title}`;
+  $('btn-submit').focus();
+  S.chestSequenceDone = true;
+}
 // Restores the chest to its correct state whenever the teaser screen is
-// (re)built: closed and ready on first arrival, or already open -- instantly,
-// no animation -- if S.chestOpened is already true for this session.
+// (re)built: closed and ready on first arrival, or already opened --
+// instantly, no animation, straight to the final big-card state -- if
+// S.chestOpened is already true for this session (back/forward, buoy jump).
+// Focus/announce are deliberately skipped here (only the genuine opening
+// moment steals focus/announces) -- only the label text is restored.
 function setupChestState(){
   const stage = $('chest-stage');
+  clearChestTimers();
   if(S.chestOpened){
-    stage.classList.add('open', 'no-anim');
+    stage.classList.add('open', 'expanded', 'no-anim');
     renderChestCardContent();
     positionChestCard();
-    $('chest-title').textContent = 'הפרופיל שלכם';
-    $('chest-subtitle').textContent = '';
-    $('btn-submit-label').textContent = 'לפרופיל המלא';
+    expandChestCard();
+    applyChestFinalLabels();
     setGateVisible(true);
+    S.chestSequenceDone = true;
   } else {
-    stage.classList.remove('open', 'no-anim');
+    stage.classList.remove('open', 'expanded', 'no-anim');
     clearChestCardContent();
     $('chest-title').textContent = 'מצאתם תיבה בדרך';
     $('chest-subtitle').textContent = 'הפרופיל שלכם מחכה בפנים';
@@ -2505,9 +2628,15 @@ function scrollChestTitleIntoView(){
   const targetY = window.scrollY + rect.top - 16;
   window.scrollTo({ top: Math.max(0, targetY), behavior:'smooth' });
 }
+let chestTimers = {};
+function clearChestTimers(){
+  Object.values(chestTimers).forEach(id => clearTimeout(id));
+  chestTimers = {};
+}
 function openChest(){
   if(S.chestOpened) return;
   S.chestOpened = true;
+  S.chestSequenceDone = false;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const stage = $('chest-stage');
   stage.classList.remove('no-anim');
@@ -2518,26 +2647,49 @@ function openChest(){
 
   renderChestCardContent();
   positionChestCard();
+  clearChestTimers();
 
-  // Reduced motion compresses the ~1.3s sequence down to the ~400-500ms
-  // fade the CSS actually runs, so these external reveals stay proportional
-  // instead of leaving a long dead pause after the (much faster) fade.
-  const gateDelay = reduced ? 450 : 1200;
-  const seqEndDelay = reduced ? 500 : 1300;
+  if(reduced){
+    // Skip the rise and the expansion entirely -- cross-fade straight to
+    // the final big card (the .expanded class switches the target CSS
+    // values; the prefers-reduced-motion media query strips out every
+    // transform/width/height animation, leaving only opacity to fade).
+    stage.classList.add('expanded');
+    expandChestCard();
+    chestTimers.gate = setTimeout(()=>{ setGateVisible(true); }, 400);
+    chestTimers.seqEnd = setTimeout(applyChestSequenceEnd, 400);
+    return;
+  }
 
-  setTimeout(()=>{ setGateVisible(true); }, gateDelay);
-
-  setTimeout(()=>{
-    $('chest-title').textContent = 'הפרופיל שלכם';
-    $('chest-subtitle').textContent = '';
-    $('btn-submit-label').textContent = 'לפרופיל המלא';
-    const title = PERSONA_TITLES[S.persona][getCharSuffix()].replace(/<[^>]+>/g,'');
-    $('chest-announce').textContent = `נפתח: ${title}`;
-    $('btn-submit').focus();
-  }, seqEndDelay);
+  // Rise finishes at .55s delay + .75s duration = 1.3s; expand after a ~150ms pause.
+  chestTimers.expand = setTimeout(()=>{
+    stage.classList.add('expanded');
+    expandChestCard();
+  }, 1450);
+  // Expansion itself runs .55s -> visually settles ~2000ms after the tap;
+  // the teaser text/gate fade in right as it finishes (their own .3s CSS
+  // transition provides the "~300ms after" timing from here).
+  chestTimers.gate = setTimeout(()=>{ setGateVisible(true); }, 2000);
+  chestTimers.seqEnd = setTimeout(applyChestSequenceEnd, 2000);
+}
+// Tapping the pinned button while the sequence is still mid-flight jumps
+// straight to the final state instead of trying to submit early.
+function fastForwardChestSequence(){
+  clearChestTimers();
+  const stage = $('chest-stage');
+  stage.classList.add('no-anim', 'expanded');
+  expandChestCard();
+  setGateVisible(true);
+  applyChestSequenceEnd();
+  void stage.offsetWidth; // force a reflow so the snap paints before transitions resume
+  stage.classList.remove('no-anim');
 }
 $('chest-stage').addEventListener('click', openChest);
-window.addEventListener('resize', ()=>{ if(S.chestOpened) positionChestCard(); });
+window.addEventListener('resize', ()=>{
+  if(!S.chestOpened) return;
+  positionChestCard();
+  if($('chest-stage').classList.contains('expanded')) expandChestCard();
+});
 function renderDots(containerId, level, cls){
   const el = $(containerId);
   el.innerHTML = '';
@@ -2557,6 +2709,7 @@ $('inp-email').addEventListener('keydown', e=>{
 });
 $('btn-submit').addEventListener('click', async ()=>{
   if(!S.chestOpened){ openChest(); return; }
+  if(!S.chestSequenceDone){ fastForwardChestSequence(); return; }
   const name = $('inp-name').value.trim();
   const email = $('inp-email').value.trim();
   const st = $('status');
@@ -2846,7 +2999,7 @@ function showToast(msg, duration){
 /* ── Retake ── */
 function resetQuiz(){
   trackEvent('retake', {});
-  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, chestOpened:false, name:'', email:''});
+  Object.assign(S, {age:null, gender:null, questions:[], idx:0, answers:[], sliderLayout:[], touchedB:false, touchedC:false, nextConfirmPending:false, scores:{w:0,s:0}, persona:null, secondary:null, charSuffix:null, chestOpened:false, chestSequenceDone:false, name:'', email:''});
   document.querySelectorAll('.chip').forEach(b=>b.classList.remove('selected'));
   $('chk-consent').checked = false;
   updateStartBtn();
